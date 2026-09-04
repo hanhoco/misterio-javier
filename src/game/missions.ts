@@ -392,8 +392,25 @@ export const TRAINING_MISSION: TrainingMission = {
 /* The assembled run                                                          */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Story order: biggest object first, smallest last.
+ *
+ * `PARK_TARGETS` is in poster order, which put the kite - 27 x 34 pixels in the
+ * source illustration, the smallest of the fifteen and nine times narrower than
+ * the school building - at mission one. Two children spent four and three tries
+ * on it before either had learned the gesture, on the hardest target in the
+ * game. That is backwards: the first mission teaches zoom, snip and paste, and
+ * it should be the easiest possible object to hit.
+ *
+ * Sorted by area rather than hand-listed so a new target lands in the right
+ * place by itself.
+ */
+function byDescendingArea(a: ParkTarget, b: ParkTarget): number {
+  return b.width * b.height - a.width * a.height;
+}
+
 function buildMissions(): readonly Mission[] {
-  const stories = PARK_TARGETS.map(toStoryMission);
+  const stories = [...PARK_TARGETS].sort(byDescendingArea).map(toStoryMission);
   const assembled: Array<Omit<Mission, 'order'>> = [];
 
   for (let index = 0; index <= stories.length; index += 1) {

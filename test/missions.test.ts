@@ -19,11 +19,32 @@ describe('mission catalogue', () => {
     assert.equal(STORY_MISSIONS.length, 15);
     assert.equal(STORY_MISSIONS.length, PARK_TARGETS.length);
 
-    const targetIds = PARK_TARGETS.map((target) => target.id);
     assert.deepEqual(
-      STORY_MISSIONS.map((mission) => mission.targetId),
-      targetIds,
+      new Set(STORY_MISSIONS.map((mission) => mission.targetId)),
+      new Set(PARK_TARGETS.map((target) => target.id)),
     );
+  });
+
+  test('orders the missions biggest object first', () => {
+    // The kite is the smallest of the fifteen and used to be mission one, so
+    // children met the hardest target before they had learned the gesture. The
+    // first mission has to be the easiest object to hit; difficulty comes later.
+    const areaOf = (targetId: string): number => {
+      const target = PARK_TARGETS.find((candidate) => candidate.id === targetId);
+      assert.ok(target, `no park target named ${targetId}`);
+      return target.width * target.height;
+    };
+
+    const areas = STORY_MISSIONS.map((mission) => areaOf(mission.targetId));
+    for (let i = 1; i < areas.length; i += 1) {
+      assert.ok(
+        areas[i] <= areas[i - 1],
+        `mission ${i + 1} (${STORY_MISSIONS[i].targetId}) is bigger than the one before it`,
+      );
+    }
+
+    assert.equal(STORY_MISSIONS[0].targetId, 'school');
+    assert.equal(STORY_MISSIONS[STORY_MISSIONS.length - 1].targetId, 'kite');
   });
 
   test('every story mission carries a distinct seal code, matching its target', () => {

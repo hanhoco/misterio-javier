@@ -187,21 +187,37 @@ export function downscaleImage(image: ImageDataLike, factor: number): ImageDataL
 
 /**
  * Step 2. Classify every pixel as one of the four reserved colours, or -1.
+ *
+ * `saturatedCount` is not used by the decode itself: it is the number that
+ * tells a failure apart. A crop that reaches this function with plenty of
+ * saturated pixels but none of them classified means the colours arrived
+ * shifted - the browser colour-managing the canvas against a monitor profile
+ * that is not sRGB will do exactly that, and the screenshot captures the
+ * transformed framebuffer. Zero saturated pixels instead means the seal was
+ * never in the crop. Those are opposite problems and the counts separate them.
  */
-function classifyPixels(image: ImageDataLike): Int8Array {
+function classifyPixels(image: ImageDataLike): {
+  labels: Int8Array;
+  classifiedCount: number;
+  saturatedCount: number;
+} {
   const labels = new Int8Array(image.width * image.height).fill(-1);
+  let classifiedCount = 0;
+  let saturatedCount = 0;
   for (let p = 0; p < labels.length; p += 1) {
     const i = p * 4;
     const { h, s, v } = rgbToHsv(image.data[i], image.data[i + 1], image.data[i + 2]);
     if (s <= MIN_SATURATION || v <= MIN_VALUE) continue;
+    saturatedCount += 1;
     for (let colorIndex = 0; colorIndex < SEAL_COLOR_COUNT; colorIndex += 1) {
       if (angularDistance(h, RESERVED_HUES[colorIndex]) <= HUE_TOLERANCE_DEGREES) {
         labels[p] = colorIndex;
+        classifiedCount += 1;
         break;
       }
     }
   }
-  return labels;
+  return { labels, classifiedCount, saturatedCount };
 }
 
 /**
@@ -383,6 +399,10 @@ export interface DecodeDiagnostics {
   blobCount: number;
   undersizedBlobCount: number;
   seals: SealCandidate[];
+  /** Pixels saturated and bright enough to be seal ink, whatever their hue. */
+  saturatedPixelCount: number;
+  /** Of those, how many landed inside a reserved hue band. */
+  classifiedPixelCount: number;
 }
 
 export interface DecodeReport {
@@ -396,7 +416,7 @@ export function decodeSealWithDiagnostics(image: ImageDataLike): DecodeReport {
   const pixelScale = longestSide > MAX_ANALYSIS_SIDE ? MAX_ANALYSIS_SIDE / longestSide : 1;
   const analysed = pixelScale < 1 ? downscaleImage(image, pixelScale) : image;
 
-  const labels = classifyPixels(analysed);
+  const { labels, classifiedCount, saturatedCount } = classifyPixels(analysed);
   const { blobs, undersizedCount } = findBlobs(analysed, labels);
   const seals = findSeals(blobs, pixelScale);
 
@@ -407,6 +427,8 @@ export function decodeSealWithDiagnostics(image: ImageDataLike): DecodeReport {
     blobCount: blobs.length,
     undersizedBlobCount: undersizedCount,
     seals,
+    saturatedPixelCount: saturatedCount,
+    classifiedPixelCount: classifiedCount,
   };
 
   return { result: chooseResult(seals, blobs, undersizedCount), diagnostics };

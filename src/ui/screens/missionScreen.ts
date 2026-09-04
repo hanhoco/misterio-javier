@@ -15,7 +15,10 @@ import { recordAttempt, storyFoundCount } from '../../game/gameState';
 import { STORY_MISSIONS, type StoryMission } from '../../game/missions';
 import { scoreMission, type PrecisionTier } from '../../game/scoring';
 import type { LoadedPoster } from '../../poster/posterSource';
-import { decodeSealWithDiagnostics } from '../../validation/sealDecoder';
+import {
+  decodeSealWithDiagnostics,
+  type DecodeDiagnostics,
+} from '../../validation/sealDecoder';
 import { buildVerdict, type Verdict, type VerdictKind } from '../../validation/verdict';
 import { attachCropGuide, type CropGuideHandle } from '../cropGuideOverlay';
 import { isDevToolsRequested } from '../devMode';
@@ -152,7 +155,7 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
 
       const copy = FEEDBACK[verdict.kind];
       evidence.say(copy.message, copy.tone);
-      evidence.showFacts(factsFor(verdict, pasted.width, pasted.height));
+      evidence.showFacts(factsFor(verdict, pasted.width, pasted.height, report.diagnostics));
 
       const next = recordAttempt(context.getProgress(), mission.id, {
         success: verdict.success,
@@ -272,11 +275,42 @@ function factsFor(
   verdict: Verdict,
   width: number,
   height: number,
+  diagnostics?: DecodeDiagnostics,
 ): Array<[string, string]> {
   const facts: Array<[string, string]> = [['Your crop', `${width} x ${height} px`]];
   if (verdict.capturedObjectName) facts.push(['You cropped', verdict.capturedObjectName]);
   if (verdict.areaRatio !== undefined) {
     facts.push(['Size', `${verdict.areaRatio.toFixed(1)}x the object`]);
   }
+  if (!verdict.success && diagnostics) facts.push(['Reader', readerNote(diagnostics)]);
   return facts;
+}
+
+/**
+ * One line naming the stage the decode died at, shown to everyone on a failure.
+ *
+ * This is here because three separate diagnoses of the classroom failures were
+ * wrong, each one plausible and each one costing a lesson. The decoder knows
+ * exactly where it stopped; it just never said. Now a single photograph of a
+ * failed attempt settles colour versus geometry versus identity, instead of
+ * another round of theory.
+ *
+ * The wording stays plain enough that a child reading it over their own
+ * shoulder is not alarmed by it.
+ */
+function readerNote(d: DecodeDiagnostics): string {
+  if (d.saturatedPixelCount === 0) return 'no bright colour in the crop';
+  if (d.classifiedPixelCount === 0) {
+    // Saturated ink is present but none of it matched a reserved hue: the
+    // colours reached the screenshot shifted. Colour management against a
+    // non-sRGB monitor profile does this, and it is invisible on screen.
+    return `${d.saturatedPixelCount} bright pixels, none the right colour`;
+  }
+  if (d.blobCount === 0) {
+    return `${d.classifiedPixelCount} colour pixels, too small or misshapen`;
+  }
+  if (d.seals.length === 0) {
+    return `${d.blobCount} dots, no cross among them`;
+  }
+  return `read ${d.seals.map((seal) => seal.code).join(', ')}`;
 }
