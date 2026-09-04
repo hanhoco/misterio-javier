@@ -19,7 +19,7 @@ import { rasterizeEmptyScene, rasterizeSeals, rasterizeSingleSeal } from './seal
  * these same two constants and the game says out loud when a crop can be taken,
  * rather than leaving a seven year old to discover it.
  *
- * Below the floor the decoder must say `too-small` ("acércate un poco más"),
+ * Below the floor the decoder must say `too-small` ("zoom in a bit more"),
  * never guess - `refuses to guess below the readable floor` guards that.
  */
 const ROUND_TRIP_SCALES = [0.65, 0.8, 1, 2, 3];
@@ -92,7 +92,7 @@ describe('sealDecoder', () => {
   it('reports too-small when the seal is below readable size', () => {
     // 0.55x puts the dot radius at 2.75px: over MIN_BLOB_RADIUS_PX so the blobs
     // are still found, under MIN_READABLE_DOT_RADIUS_PX so the seal must not be
-    // read. That band is what "acércate un poco más" exists for.
+    // read. That band is what "zoom in a bit more" exists for.
     const result = decodeSeal(rasterizeSingleSeal(POSTER_OBJECTS[0].sealCode, 0.55));
     assert.equal(result.kind, 'too-small', `expected too-small, got "${result.kind}"`);
   });

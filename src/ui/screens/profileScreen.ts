@@ -23,19 +23,19 @@ export function createProfileScreen(options: ProfileScreenOptions): Screen {
   const root = element('section', 'screen screen--profile');
 
   const hero = element('div', 'hero');
-  hero.appendChild(element('h1', 'hero__title', '🔎 EL MISTERIO DE JAVIER'));
+  hero.appendChild(element('h1', 'hero__title', '🔎 THE MYSTERY OF JAVIER'));
   hero.appendChild(element('p', 'hero__story', STORY_INTRO));
   root.appendChild(hero);
 
   const card = element('div', 'card');
-  card.appendChild(element('h2', 'card__title', '¿Quién va a investigar hoy?'));
+  card.appendChild(element('h2', 'card__title', 'Who is investigating today?'));
 
-  const name = textField('Tu nombre', {
+  const name = textField('Your name', {
     placeholder: 'Ana',
     maxLength: 20,
     value: remembered?.name ?? '',
   });
-  const classCode = textField('Código del curso', {
+  const classCode = textField('Class code', {
     placeholder: '3B',
     maxLength: 10,
     value: remembered?.classCode ?? '',
@@ -46,20 +46,20 @@ export function createProfileScreen(options: ProfileScreenOptions): Screen {
   notice.hidden = true;
   card.appendChild(notice);
 
-  const start = button('¡Empezar la misión!', 'button button--primary button--big');
+  const start = button('Start the mission!', 'button button--primary button--big');
   card.appendChild(start);
 
   card.appendChild(
     element(
       'p',
       'card__hint',
-      'Si ya jugaste antes, escribe el mismo nombre y el mismo código para continuar donde ibas.',
+      'If you played before, type the same name and the same code to carry on where you were.',
     ),
   );
   root.appendChild(card);
 
   const footer = element('div', 'screen__footer');
-  const teacher = button('Soy docente', 'button button--ghost');
+  const teacher = button('I am a teacher', 'button button--ghost');
   teacher.addEventListener('click', options.onTeacher);
   footer.appendChild(teacher);
   root.appendChild(footer);
@@ -75,15 +75,15 @@ export function createProfileScreen(options: ProfileScreenOptions): Screen {
     const typedCode = classCode.input.value.trim();
 
     if (typedName.length === 0) {
-      fail('Escribe tu nombre para empezar.', name.input);
+      fail('Type your name to start.', name.input);
       return;
     }
     if (!/\p{L}/u.test(typedName)) {
-      fail('Tu nombre necesita al menos una letra.', name.input);
+      fail('Your name needs at least one letter.', name.input);
       return;
     }
     if (typedCode.length === 0) {
-      fail('Escribe el código que te dio tu profe.', classCode.input);
+      fail('Type the code your teacher gave you.', classCode.input);
       return;
     }
 

@@ -107,7 +107,7 @@ function windowDiagram(): SVGSVGElement {
   svg.setAttribute('role', 'img');
   svg.setAttribute(
     'aria-label',
-    'La foto se toma de esta ventana del navegador, tal como se ve ahora.',
+    'The photo is taken of this browser window, exactly as it looks right now.',
   );
 
   svg.innerHTML = [
@@ -145,7 +145,7 @@ export function mountWalkthroughOverlay(
   if (reducedMotion) root.classList.add('walkthrough--still');
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-modal', 'true');
-  root.setAttribute('aria-label', 'Guía paso a paso');
+  root.setAttribute('aria-label', 'Step by step guide');
 
   /** Carries the box-shadow that darkens everything else. Click-through. */
   const hole = element('div', 'walkthrough__hole');
@@ -167,16 +167,16 @@ export function mountWalkthroughOverlay(
   dots.setAttribute('aria-hidden', 'true');
 
   const actions = element('div', 'walkthrough__actions');
-  const nextButton = button('Siguiente', 'button button--primary walkthrough__next');
-  const skipButton = button('Saltar guía', 'walkthrough__skip');
+  const nextButton = button('Next', 'button button--primary walkthrough__next');
+  const skipButton = button('Skip the guide', 'walkthrough__skip');
   actions.append(skipButton, nextButton);
 
   /** The Escape confirmation. Never a competing button; only ever a question. */
   const confirm = element('div', 'walkthrough__confirm');
   confirm.hidden = true;
-  const confirmText = element('p', 'walkthrough__confirm-text', '¿Quieres salir de la guía?');
-  const confirmYes = button('Sí, salir', 'button button--ghost button--small');
-  const confirmNo = button('Seguir aquí', 'button button--primary button--small');
+  const confirmText = element('p', 'walkthrough__confirm-text', 'Do you want to leave the guide?');
+  const confirmYes = button('Yes, leave', 'button button--ghost button--small');
+  const confirmNo = button('Stay here', 'button button--primary button--small');
   const confirmRow = element('div', 'walkthrough__confirm-row');
   confirmRow.append(confirmNo, confirmYes);
   confirm.append(confirmText, confirmRow);
@@ -425,8 +425,8 @@ export function mountWalkthroughOverlay(
     }
 
     // Focus follows the bubble on a blocking step, and deliberately does not on
-    // the snip step: nothing there is modal, and pulling focus onto "Saltar
-    // guía" a moment before the child presses three keys is asking for it.
+    // the snip step: nothing there is modal, and pulling focus onto "Skip the
+    // guide" a moment before the child presses three keys is asking for it.
     if (step.scrim) focusBubble();
   }
 

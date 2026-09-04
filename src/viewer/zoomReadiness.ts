@@ -7,14 +7,14 @@
  * that number against the zoom the viewer OPENS at. On a 1366x768 school laptop
  * the park poster fits at about 0.26x, and at 0.26x not one of the fifteen
  * targets could be decoded. Children searched correctly, cropped correctly, and
- * were told "Esa no es la pista".
+ * were told "That is not the clue".
  *
  * Two things follow from that, and both live here so they can never drift apart
  * again:
  *
  * 1. The child is told, live, BEFORE they spend a crop, whether the poster is
  *    close enough. See `posterStage.ts`.
- * 2. Below the threshold the only honest verdict is "acércate un poco más",
+ * 2. Below the threshold the only honest verdict is "zoom in a bit more",
  *    whatever the decoder returned. See `verdict.ts`.
  *
  * And the scale both of those are measured in is NOT the viewer's CSS scale.
@@ -39,12 +39,12 @@ import { MIN_READABLE_DOT_RADIUS_PX } from '../validation/sealDecoder';
 export const READABLE_FLOOR_SCALE = MIN_READABLE_DOT_RADIUS_PX / SEAL_DOT_RADIUS;
 
 /**
- * How far above the bare floor "listo" starts.
+ * How far above the bare floor "ready" starts.
  *
  * At exactly the floor the core is 3.0px in theory and rather less than that in
  * practice, once the antialiased rim is eaten by the saturation cut: measured
  * on the real park poster, 0.60x decodes 3 of 15 targets and 0.62x decodes all
- * 15. Promising a child "¡Listo!" and then failing them is worse than asking
+ * 15. Promising a child "Ready!" and then failing them is worse than asking
  * for one more press of "+", so the green light waits for headroom.
  */
 export const READINESS_SAFETY_MARGIN = 1.1;
@@ -81,7 +81,7 @@ export const READY_TO_CROP_SCALE = READABLE_FLOOR_SCALE * READINESS_SAFETY_MARGI
  * laptops can behave differently over a setting nobody thinks to check.
  *
  * A readiness light computed from the CSS scale alone would show a green
- * "¡Listo para recortar!" on a machine where the crop cannot possibly be read.
+ * "Ready to crop!" on a machine where the crop cannot possibly be read.
  * That is worse than no light at all, because by then the child trusts it.
  */
 export function effectiveCropScale(viewerScale: number, devicePixelRatio: number): number {
@@ -120,19 +120,19 @@ export interface ZoomReadinessCopy {
 }
 
 /**
- * Spanish, neutral register, for a Colombian child of seven to nine.
+ * Plain English, for a child of seven to nine.
  *
- * Never blaming: "muy lejos" is a fact about the picture, not about the child.
+ * Never blaming: "too far" is a fact about the picture, not about the child.
  */
 export const ZOOM_READINESS_COPY: Record<ZoomReadiness, ZoomReadinessCopy> = {
   'too-far': {
     badge: '🔴',
-    label: 'Muy lejos para recortar',
-    hint: 'Acércate un poco más con el botón +',
+    label: 'Too far to crop',
+    hint: 'Zoom in a bit with the + button',
   },
   ready: {
     badge: '🟢',
-    label: '¡Listo para recortar!',
-    hint: 'Ya puedes usar Windows + Shift + S',
+    label: 'Ready to crop!',
+    hint: 'Now use Windows + Shift + S',
   },
 };

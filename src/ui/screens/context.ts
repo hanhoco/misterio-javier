@@ -16,12 +16,23 @@ export interface ScreenContext {
   /**
    * Persists new progress without touching the DOM.
    *
-   * Deliberately not a re-render: a screen that has just shown "¡Encontraste la
-   * pista!" needs to keep that on screen until the child presses continue.
+   * Deliberately not a re-render: a screen that has just shown "You found the
+   * clue!" needs to keep that on screen until the child presses continue.
    */
   save(next: GameProgress): void;
   /** Rebuilds the screen for wherever the progress now points. */
   refresh(): void;
+  /**
+   * Tells the caller when guided mode is switched in the header. Returns the
+   * unsubscribe.
+   *
+   * A listener rather than a re-render, and that is the whole reason it exists:
+   * rebuilding the mission screen would refit the poster and throw away the
+   * zoom and the pan the child spent half a minute arriving at. A teacher who
+   * flips the switch mid-lesson - which is exactly when they will flip it -
+   * must not cost thirty children their place on the picture.
+   */
+  onGuidedModeChange(listener: (guidedMode: boolean) => void): () => void;
   /** The park poster, loaded once for the whole session. */
   poster(): Promise<LoadedPoster>;
   sound: SoundBoard;

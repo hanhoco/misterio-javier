@@ -166,7 +166,7 @@ describe('the readiness light', () => {
     assert.equal(far.badge, '\u{1F534}');
     assert.equal(ready.badge, '\u{1F7E2}');
     // The red state must name the remedy, not just the problem.
-    assert.match(far.hint, /Acércate/);
+    assert.match(far.hint, /Zoom in/);
     assert.notEqual(far.label, ready.label);
     for (const copy of [far, ready]) {
       assert.ok(copy.label.length > 0 && copy.label.length <= 32, copy.label);

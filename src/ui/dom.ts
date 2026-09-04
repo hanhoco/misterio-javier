@@ -35,7 +35,7 @@ export function clear(node: HTMLElement): void {
  */
 export function keyHint(keys: readonly string[]): HTMLElement {
   const row = element('span', 'keys');
-  row.setAttribute('aria-label', `Teclas: ${keys.join(' más ')}`);
+  row.setAttribute('aria-label', `Keys: ${keys.join(' plus ')}`);
   keys.forEach((key, index) => {
     if (index > 0) row.appendChild(element('span', 'keys__plus', '+'));
     row.appendChild(element('kbd', 'keys__cap', key));

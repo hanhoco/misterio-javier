@@ -20,6 +20,9 @@ import {
 } from './viewerGeometry';
 import { effectiveCropScale } from './zoomReadiness';
 
+/** How often the device pixel ratio is reconciled. See `ratioPoll`. */
+const RATIO_POLL_MS = 1000;
+
 /**
  * Everything a caller needs to say whether a crop taken right now can be read.
  *
@@ -90,6 +93,22 @@ export class PosterViewer {
     this.resize();
     this.render();
   };
+  /**
+   * Backstop for the ratio watch above.
+   *
+   * The `(resolution: Xdppx)` change event is the documented way to hear about
+   * a monitor change, and it is not reliable enough on its own to bet a
+   * classroom on: measured under Chrome's device-metrics emulation, the query's
+   * `matches` flips correctly but no `change` event is ever delivered, and
+   * neither `resize` nor the ResizeObserver reports the new ratio in the same
+   * tick. A stale ratio means a green light on a machine that cannot deliver,
+   * which is the failure this whole module exists to prevent.
+   *
+   * So the ratio is also reconciled on a slow timer. One number compared once a
+   * second costs nothing measurable, and it closes every case the event misses.
+   */
+  private ratioPoll: ReturnType<typeof setInterval> | null = null;
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor(container: HTMLElement, poster: HTMLCanvasElement) {
     this.poster = poster;
@@ -106,7 +125,12 @@ export class PosterViewer {
     this.resize();
     this.fitToView();
 
-    new ResizeObserver(() => {
+    this.ratioPoll = setInterval(() => {
+      if (this.getDevicePixelRatio() === this.notifiedRatio) return;
+      this.onRatioChange();
+    }, RATIO_POLL_MS);
+
+    this.resizeObserver = new ResizeObserver(() => {
       this.resize();
       // A viewer built before its container was in the document measured a
       // zero-sized rect, and `fitToView` clamped the scale to MIN_SCALE - which
@@ -119,7 +143,24 @@ export class PosterViewer {
       }
       this.clampOffsets();
       this.render();
-    }).observe(container);
+    });
+    this.resizeObserver.observe(container);
+  }
+
+  /**
+   * Releases the observer, the ratio watch and its timer.
+   *
+   * Screens are torn down and rebuilt fifteen times over a lesson, so a viewer
+   * that leaves a timer running behind it leaves fifteen.
+   */
+  destroy(): void {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    this.ratioQuery?.removeEventListener('change', this.onRatioChange);
+    this.ratioQuery = null;
+    if (this.ratioPoll !== null) clearInterval(this.ratioPoll);
+    this.ratioPoll = null;
+    this.scaleListener = null;
   }
 
   /** Current poster-pixels-to-CSS-pixels factor. */
@@ -232,6 +273,19 @@ export class PosterViewer {
   /** Converts poster-native pixels into CSS pixels inside the viewer canvas. */
   screenPointFromPoster(x: number, y: number): { x: number; y: number } {
     return { x: x * this.scale + this.offsetX, y: y * this.scale + this.offsetY };
+  }
+
+  /**
+   * The canvas box in CSS pixels.
+   *
+   * Read live rather than cached, for the same reason the device pixel ratio
+   * is: the stage is resized by the window, by the rail growing a puzzle tile
+   * and by a monitor change, and an overlay that has to answer "is this box
+   * still on screen?" cannot be asking a stale number.
+   */
+  viewportSize(): { width: number; height: number } {
+    const rect = this.canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
   }
 
   /**

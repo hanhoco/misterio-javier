@@ -357,7 +357,7 @@ describe('seal round-trip against the dense poster', () => {
    * The sweep starts at 0.8x, not 0.5x. `SEAL_DOT_RADIUS` was halved from 7 to
    * 4 so the seals stop defacing the illustration, and the decoder needs a 3px
    * radius, so nothing resolves below 3/4 = 0.75x. Under that floor the correct
-   * answer is `too-small` - "acércate un poco más" - which is asserted in
+   * answer is `too-small` - "zoom in a bit more" - which is asserted in
    * `sealDecoder.test.ts`, not a decode. The raised floor is the design: it
    * forces the child to zoom in before a crop can be read.
    */

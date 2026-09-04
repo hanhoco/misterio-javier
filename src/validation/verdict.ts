@@ -1,8 +1,8 @@
 /**
  * Turns a decode result into something a seven year old can act on.
  *
- * Code identifiers stay in English; every `message` is Spanish, neutral
- * register, because it is shown directly to the child.
+ * Every `message` is plain English, warm and neutral, because it is shown
+ * directly to the child.
  */
 
 import type { PosterTarget } from '../poster/posterData';
@@ -30,7 +30,7 @@ export type VerdictKind =
 
 export interface Verdict {
   kind: VerdictKind;
-  /** User facing text, Spanish. */
+  /** User facing text. */
   message: string;
   /** True when the child captured the requested object. */
   success: boolean;
@@ -83,7 +83,7 @@ function gradeCapture(
       code: measurement.code,
       scale: measurement.scale,
       areaRatio,
-      message: '¡Excelente recorte! Encontraste la pista.',
+      message: 'Great crop! You found the clue.',
     };
   }
 
@@ -94,7 +94,7 @@ function gradeCapture(
       code: measurement.code,
       scale: measurement.scale,
       areaRatio,
-      message: '¡La encontraste! Intenta recortar un poco más cerca.',
+      message: 'You found it! Try cropping a bit closer next time.',
     };
   }
 
@@ -106,7 +106,7 @@ function gradeCapture(
     code: measurement.code,
     scale: measurement.scale,
     areaRatio,
-    message: '¡La encontraste! Pero recortaste demasiado grande. Acércate más.',
+    message: 'You found it! But your crop was very big. Try zooming in more.',
   };
 }
 
@@ -123,10 +123,10 @@ function gradeCapture(
  * Below the readable floor a seal's core is physically thinner than the decoder
  * can classify, so the crop CANNOT have been read - which means a `no-seal` or
  * a wrong code down there says nothing whatsoever about what the child cropped.
- * Rendering that as "Esa no es la pista" told children who had searched
+ * Rendering that as "That is not the clue" told children who had searched
  * correctly and cropped correctly that they had found the wrong object. It is
  * not merely unhelpful; it is false. Below the floor the answer is always
- * "acércate un poco más".
+ * "zoom in a bit more".
  *
  * Above the floor nothing changes: a genuine wrong object is still called one.
  * And a crop that somehow succeeded is never taken away, whatever the zoom.
@@ -150,7 +150,7 @@ function tooSmallVerdict(): Verdict {
   return {
     kind: 'TOO_SMALL',
     success: false,
-    message: 'Acércate un poco más con el zoom antes de recortar.',
+    message: 'Zoom in a bit more before you crop.',
   };
 }
 
@@ -166,7 +166,7 @@ function gradeResult(
       return {
         kind: 'NO_SEAL',
         success: false,
-        message: 'No reconocí ninguna pista en tu recorte. Intenta de nuevo.',
+        message: 'I could not see a clue in your crop. Have another go.',
       };
 
     case 'too-small':
@@ -184,7 +184,7 @@ function gradeResult(
         success: false,
         code: result.codes[0],
         message:
-          'Tu recorte tiene varias pistas y ninguna es la que buscas. Recorta solo el objeto.',
+          'Your crop has several clues, and none of them is yours. Crop just the object.',
       };
     }
 
@@ -198,7 +198,7 @@ function gradeResult(
           scale: result.scale,
           areaRatio: computeAreaRatio(target, result.scale, cropWidth, cropHeight),
           capturedObjectName: captured?.name,
-          message: 'Esa no es la pista. ¡Busca otra vez!',
+          message: 'That is not the clue. Keep looking!',
         };
       }
 

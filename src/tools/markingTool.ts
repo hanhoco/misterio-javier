@@ -10,7 +10,7 @@
  * Output is normalised 0-1 coordinates against the cropped illustration, which
  * is the same unit `parkPosterData.ts` stores, so the JSON pastes straight in.
  *
- * Code is English; every string the user reads is Spanish.
+ * Code and copy are both English.
  */
 
 import {
@@ -66,7 +66,7 @@ function nextFreeCode(taken: ReadonlySet<number>): number {
   for (let code = 0; code < SEAL_CODE_COUNT; code += 1) {
     if (!taken.has(code)) return code;
   }
-  throw new Error('No hay códigos de sello disponibles.');
+  throw new Error('No seal codes are available.');
 }
 
 /** Base-4 digits of a code, so the emitted JSON matches the catalogue's shape. */
@@ -104,19 +104,19 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
 
   /* Header ---------------------------------------------------------------- */
   const header = element('header', 'marking__header');
-  header.appendChild(element('h2', 'marking__title', 'Marcar objetos'));
+  header.appendChild(element('h2', 'marking__title', 'Mark objects'));
 
-  const modeButton = element('button', 'button button--ghost', 'Modo: dibujar');
+  const modeButton = element('button', 'button button--ghost', 'Mode: draw');
   modeButton.type = 'button';
-  const fitButton = element('button', 'button button--ghost', 'Ver todo');
+  const fitButton = element('button', 'button button--ghost', 'See it all');
   fitButton.type = 'button';
   const zoomOutButton = element('button', 'button button--round', '−');
   zoomOutButton.type = 'button';
-  zoomOutButton.setAttribute('aria-label', 'Alejar');
+  zoomOutButton.setAttribute('aria-label', 'Zoom out');
   const zoomInButton = element('button', 'button button--round', '+');
   zoomInButton.type = 'button';
-  zoomInButton.setAttribute('aria-label', 'Acercar');
-  const closeButton = element('button', 'button', 'Cerrar');
+  zoomInButton.setAttribute('aria-label', 'Zoom in');
+  const closeButton = element('button', 'button', 'Close');
   closeButton.type = 'button';
 
   const tools = element('div', 'marking__tools');
@@ -128,8 +128,8 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
     element(
       'p',
       'marking__hint',
-      'Arrastra sobre la ilustración para encerrar un objeto y luego escribe su nombre. ' +
-        'Cambia a "mover" para desplazar el póster y usa la rueda para acercarte.',
+      'Drag over the illustration to box an object in, then type its name. ' +
+        'Switch to "move" to pan the poster, and use the wheel to zoom in.',
     ),
   );
 
@@ -140,18 +140,18 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
   body.append(stage, sidebar);
   panel.appendChild(body);
 
-  const listTitle = element('h3', 'marking__subtitle', 'Objetos marcados');
+  const listTitle = element('h3', 'marking__subtitle', 'Marked objects');
   const list = element('ul', 'marking__list');
-  const empty = element('p', 'marking__empty', 'Todavía no has marcado ningún objeto.');
+  const empty = element('p', 'marking__empty', 'You have not marked any object yet.');
   sidebar.append(listTitle, empty, list);
 
   /* Output ---------------------------------------------------------------- */
-  const outputTitle = element('h3', 'marking__subtitle', 'Datos del póster (JSON)');
+  const outputTitle = element('h3', 'marking__subtitle', 'Poster data (JSON)');
   const output = element('textarea', 'marking__output');
   output.readOnly = true;
   output.rows = 12;
   output.spellcheck = false;
-  const copyButton = element('button', 'button button--ghost', 'Copiar JSON');
+  const copyButton = element('button', 'button button--ghost', 'Copy JSON');
   copyButton.type = 'button';
   const copyNote = element('p', 'marking__note', '');
   sidebar.append(outputTitle, output, copyButton, copyNote);
@@ -241,8 +241,8 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
       const nameInput = element('input', 'marking__name');
       nameInput.type = 'text';
       nameInput.value = box.name;
-      nameInput.placeholder = 'Nombre en español';
-      nameInput.setAttribute('aria-label', `Nombre de ${box.id}`);
+      nameInput.placeholder = 'Name in English';
+      nameInput.setAttribute('aria-label', `Name of ${box.id}`);
       nameInput.addEventListener('input', () => {
         box.name = nameInput.value;
         refreshOutput();
@@ -255,9 +255,9 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
 
       const code = element('span', 'marking__code', `#${box.sealCode}`);
 
-      const remove = element('button', 'button button--ghost marking__remove', 'Borrar');
+      const remove = element('button', 'button button--ghost marking__remove', 'Delete');
       remove.type = 'button';
-      remove.setAttribute('aria-label', `Borrar ${box.id}`);
+      remove.setAttribute('aria-label', `Delete ${box.id}`);
       remove.addEventListener('click', () => {
         const index = boxes.findIndex((candidate) => candidate.id === box.id);
         if (index < 0) return;
@@ -277,7 +277,7 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
   /* Drawing --------------------------------------------------------------- */
 
   const canvas = stage.querySelector('canvas');
-  if (!canvas) throw new Error('El visor no creó su lienzo.');
+  if (!canvas) throw new Error('The viewer did not create its canvas.');
 
   const clampToPoster = (point: { x: number; y: number }) => ({
     x: Math.max(0, Math.min(viewer.posterWidth, point.x)),
@@ -348,7 +348,7 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
 
   modeButton.addEventListener('click', () => {
     mode = mode === 'draw' ? 'pan' : 'draw';
-    modeButton.textContent = mode === 'draw' ? 'Modo: dibujar' : 'Modo: mover';
+    modeButton.textContent = mode === 'draw' ? 'Mode: draw' : 'Mode: move';
     viewer.setPanEnabled(mode === 'pan');
   });
   zoomInButton.addEventListener('click', () => viewer.zoomIn());
@@ -361,10 +361,10 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
     navigator.clipboard
       ?.writeText(output.value)
       .then(() => {
-        copyNote.textContent = 'Copiado al portapapeles.';
+        copyNote.textContent = 'Copied to the clipboard.';
       })
       .catch(() => {
-        copyNote.textContent = 'No pude copiar. Selecciona el texto y usa Ctrl + C.';
+        copyNote.textContent = 'Could not copy. Select the text and use Ctrl + C.';
       });
   });
 
@@ -376,6 +376,9 @@ export function mountMarkingTool(root: HTMLElement, options: MarkingToolOptions)
     canvas.removeEventListener('pointermove', onPointerMove);
     canvas.removeEventListener('pointerup', onPointerUp);
     canvas.removeEventListener('pointercancel', onPointerUp);
+    // The viewer owns a resize observer and a device-pixel-ratio watch, and
+    // this tool can be opened and closed many times in one authoring session.
+    viewer.destroy();
     panel.remove();
   };
 }

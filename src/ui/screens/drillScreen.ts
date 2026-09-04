@@ -64,7 +64,7 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
 
   const header = element('div', 'screen__header');
   const heading = element('div', 'screen__heading');
-  heading.appendChild(element('p', 'screen__eyebrow', 'Práctica rápida'));
+  heading.appendChild(element('p', 'screen__eyebrow', 'Quick practice'));
   heading.appendChild(element('h2', 'screen__title', mission.title));
   heading.appendChild(element('p', 'screen__subtitle', mission.objective));
   header.appendChild(heading);
@@ -78,7 +78,7 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
     `drill__side${mission.drill === 'zoom' ? ' drill__side--single' : ''}`,
   );
 
-  const continueButton = button('Seguir con la misión ➜', 'button button--primary button--big');
+  const continueButton = button('Back to the mission ➜', 'button button--primary button--big');
   continueButton.hidden = true;
   continueButton.addEventListener('click', () => options.onContinue());
 
@@ -128,7 +128,7 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
     const practice = renderPracticePoster({
       shape: mission.shape ?? 'star',
       sealCode: mission.sealCode ?? 0,
-      name: mission.shapeName ?? 'la figura',
+      name: mission.shapeName ?? 'the shape',
       id: mission.id,
     });
     body.appendChild(buildPosterPanel(practice));
@@ -147,19 +147,19 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
     const practice = renderPracticeCard({
       shape: mission.shape ?? 'heart',
       sealCode: mission.sealCode ?? 0,
-      name: mission.shapeName ?? 'la figura',
+      name: mission.shapeName ?? 'the shape',
       id: mission.id,
     });
 
     const cardPanel = element('div', 'drill__card-panel');
     cardPanel.appendChild(
-      element('p', 'drill__card-title', 'Esta es la tarjeta que vas a copiar:'),
+      element('p', 'drill__card-title', 'This is the card you are going to copy:'),
     );
 
     const card = element('figure', 'copy-card');
     const image = element('img', 'copy-card__image');
     image.src = practice.canvas.toDataURL('image/png');
-    image.alt = mission.shapeName ?? 'Tarjeta para copiar';
+    image.alt = mission.shapeName ?? 'Card to copy';
     image.draggable = false;
     card.appendChild(image);
     cardPanel.appendChild(card);
@@ -180,8 +180,8 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
       element(
         'p',
         'drill__card-hint',
-        'Truco: si el clic no la selecciona, haz clic derecho sobre la tarjeta y ' +
-          'elige "Copiar imagen".',
+        'Tip: if clicking does not select it, right click on the card and ' +
+          'choose "Copy image".',
       ),
     );
     body.appendChild(cardPanel);
@@ -214,23 +214,23 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
 
   function buildZoomPanel(): HTMLElement {
     const panel = element('div', 'drill__demo');
-    panel.appendChild(element('h3', 'drill__demo-title', 'El zoom del navegador'));
+    panel.appendChild(element('h3', 'drill__demo-title', 'The browser zoom'));
     panel.appendChild(
       element(
         'p',
         'drill__demo-text',
-        'Estos botones + y − que ves en las misiones acercan solamente el póster. ' +
-          'Ahora vas a practicar otra cosa: el zoom que agranda TODA la pantalla ' +
-          'del navegador. Sirve para ver mejor cualquier página.',
+        'The + and − buttons you see in the missions only zoom the poster. ' +
+          'Now you are going to practise something else: the zoom that makes the ' +
+          'WHOLE browser screen bigger. It helps you see any page better.',
       ),
     );
 
     const keys = element('div', 'drill__keys');
     const zoomRow = element('div', 'drill__key-row');
-    zoomRow.appendChild(element('span', 'drill__key-label', 'Agrandar todo'));
+    zoomRow.appendChild(element('span', 'drill__key-label', 'Make everything bigger'));
     zoomRow.appendChild(keyHint(['Ctrl', '+']));
     const resetRow = element('div', 'drill__key-row');
-    resetRow.appendChild(element('span', 'drill__key-label', 'Volver al tamaño normal'));
+    resetRow.appendChild(element('span', 'drill__key-label', 'Back to the normal size'));
     resetRow.appendChild(keyHint(['Ctrl', '0']));
     keys.append(zoomRow, resetRow);
     panel.appendChild(keys);
@@ -239,8 +239,8 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
       element(
         'p',
         'drill__demo-text',
-        'Mira cómo cambian las letras de esta página cuando lo presionas. ' +
-          'No te preocupes: con Ctrl y 0 todo vuelve a su lugar.',
+        'Watch how the letters on this page change when you press it. ' +
+          'Do not worry: Ctrl and 0 puts everything back.',
       ),
     );
     return panel;
@@ -253,6 +253,7 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
       stageClass: 'poster-viewer__stage--practice',
     });
     fitters.push(() => stage.fit());
+    cleanups.push(() => stage.destroy());
     panel.appendChild(stage.root);
     return panel;
   }
@@ -262,8 +263,8 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
       compact: true,
       hint:
         kind === 'crop'
-          ? 'Recorta con Windows + Shift + S y pega aquí con Ctrl + V.'
-          : 'Después de copiar la tarjeta, presiona Ctrl + V aquí.',
+          ? 'Crop with Windows + Shift + S and paste here with Ctrl + V.'
+          : 'After you copy the card, press Ctrl + V here.',
       onImage(pasted) {
         if (completed) return;
         evidence.showPreview(pasted);
@@ -278,7 +279,7 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
         );
 
         if (verdict.success) {
-          evidence.say('¡Perfecto! Eso era exactamente. 🎉', 'success');
+          evidence.say('Perfect! That was exactly it. 🎉', 'success');
           evidence.setEnabled(false);
           steps.fire('paste');
           // The paste may not have been the step the list was waiting on, for
@@ -292,9 +293,9 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
         context.sound.play('gentle');
         evidence.say(
           kind === 'copy'
-            ? '¡Casi! Lo que pegaste no era la tarjeta completa. Selecciónala otra ' +
-              'vez y vuelve a copiarla con Ctrl + C.'
-            : '¡Casi! Ese recorte no tenía la figura completa. Inténtalo otra vez.',
+            ? 'So close! What you pasted was not the whole card. Select it again ' +
+              'and copy it with Ctrl + C.'
+            : 'So close! That crop did not have the whole shape. Have another go.',
           'warning',
         );
       },
@@ -302,11 +303,11 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
         if (completed) return;
         evidence.say(
           kind === 'copy'
-            ? 'Tu navegador no puso la imagen en el portapapeles. Prueba así: haz ' +
-              'clic derecho sobre la tarjeta y elige "Copiar imagen", y luego pega ' +
-              'aquí con Ctrl + V.'
-            : 'Todavía no hay una imagen en el portapapeles. Recorta con Windows + ' +
-              'Shift + S y vuelve a pegar.',
+            ? 'Your browser did not put the image on the clipboard. Try this: right ' +
+              'click on the card, choose "Copy image", then paste here with ' +
+              'Ctrl + V.'
+            : 'There is no image on the clipboard yet. Crop with Windows + ' +
+              'Shift + S and paste again.',
           'warning',
         );
       },

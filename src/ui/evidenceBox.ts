@@ -1,5 +1,5 @@
 /**
- * The "pega aquí tu evidencia" panel, plus the feedback line under it.
+ * The "paste your evidence here" panel, plus the feedback line under it.
  *
  * Every screen that accepts a crop uses this one, so the child meets the same
  * box in the tutorial, in the drills and in all fifteen missions. Learning
@@ -16,9 +16,9 @@ import { element, keyHint, showImageData } from './dom';
 export type FeedbackTone = 'neutral' | 'success' | 'warning' | 'error';
 
 export interface EvidenceBoxOptions {
-  /** Spanish title over the box. */
+  /** Title over the box. */
   title?: string;
-  /** Spanish line under the title. */
+  /** Line under the title. */
   hint?: string;
   /**
    * One tight row instead of a tall panel.
@@ -56,7 +56,7 @@ export function createEvidenceBox(options: EvidenceBoxOptions): EvidenceBox {
 
   const header = element('div', 'evidence__header');
   header.appendChild(
-    element('p', 'evidence__title', options.title ?? 'Pega aquí tu evidencia'),
+    element('p', 'evidence__title', options.title ?? 'Paste your evidence here'),
   );
   header.appendChild(keyHint(['Ctrl', 'V']));
   root.appendChild(header);
@@ -66,13 +66,13 @@ export function createEvidenceBox(options: EvidenceBoxOptions): EvidenceBox {
       element(
         'p',
         'evidence__hint',
-        options.hint ?? 'Recorta con Windows + Shift + S y luego pega aquí.',
+        options.hint ?? 'Crop with Windows + Shift + S, then paste here.',
       ),
     );
   }
 
   const preview = element('img', 'evidence__preview');
-  preview.alt = 'Tu recorte';
+  preview.alt = 'Your crop';
   preview.hidden = true;
   root.appendChild(preview);
 
@@ -98,14 +98,14 @@ export function createEvidenceBox(options: EvidenceBoxOptions): EvidenceBox {
         return;
       }
       api.say(
-        'No encontré ninguna imagen en el portapapeles. Recorta la pantalla con ' +
-          'Windows + Shift + S y vuelve a pegar aquí.',
+        'I could not find an image on the clipboard. Crop the screen with ' +
+          'Windows + Shift + S and paste here again.',
         'warning',
       );
     },
     onError(error) {
       console.error('Paste failed', error);
-      api.say('No pude leer tu recorte. Inténtalo otra vez, con calma.', 'error');
+      api.say('I could not read your crop. Have another go, take your time.', 'error');
     },
   });
 

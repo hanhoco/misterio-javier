@@ -7,8 +7,8 @@
  * from those two. A sixteenth park target becomes a sixteenth mission with no
  * edit here.
  *
- * Feedback is positive whatever happened, per the brief: a wrong crop is "¡Muy
- * buena búsqueda!", never "incorrecto".
+ * Feedback is positive whatever happened, per the brief: a wrong crop is "Great
+ * searching!", never "wrong".
  */
 
 import { recordAttempt, storyFoundCount } from '../../game/gameState';
@@ -17,6 +17,7 @@ import { scoreMission, type PrecisionTier } from '../../game/scoring';
 import type { LoadedPoster } from '../../poster/posterSource';
 import { decodeSealWithDiagnostics } from '../../validation/sealDecoder';
 import { buildVerdict, type Verdict, type VerdictKind } from '../../validation/verdict';
+import { attachCropGuide, type CropGuideHandle } from '../cropGuideOverlay';
 import { isDevToolsRequested } from '../devMode';
 import { button, element } from '../dom';
 import { createEvidenceBox, type FeedbackTone } from '../evidenceBox';
@@ -25,26 +26,26 @@ import type { Screen, ScreenContext } from './context';
 
 /** Child-facing copy per verdict, warm on every branch. */
 const FEEDBACK: Record<VerdictKind, { message: string; tone: FeedbackTone }> = {
-  PRECISE: { message: '¡Encontraste la pista! Y tu recorte quedó precioso. 🎉', tone: 'success' },
-  LOOSE: { message: '¡Encontraste la pista! 🎉', tone: 'success' },
+  PRECISE: { message: 'You found the clue! And what a lovely crop. 🎉', tone: 'success' },
+  LOOSE: { message: 'You found the clue! 🎉', tone: 'success' },
   TOO_WIDE: {
-    message: '¡Encontraste la pista! La próxima vez, acércate un poquito más.',
+    message: 'You found the clue! Next time, zoom in a little bit more.',
     tone: 'success',
   },
   WRONG_OBJECT: {
-    message: '¡Muy buena búsqueda! Esa es otra pista del parque. Sigue buscando la tuya.',
+    message: 'Great searching! That is another park clue. Keep looking for yours.',
     tone: 'warning',
   },
   AMBIGUOUS: {
-    message: '¡Casi! Tu recorte tiene varias pistas. Intenta recortar solo el objeto.',
+    message: 'So close! Your crop has several clues. Try cropping just the object.',
     tone: 'warning',
   },
   NO_SEAL: {
-    message: '¡Casi! No vi la pista en tu recorte. Mira otra vez con calma.',
+    message: 'So close! I did not see the clue in your crop. Take another calm look.',
     tone: 'warning',
   },
   TOO_SMALL: {
-    message: 'Intenta acercarte un poquito más con el zoom y recorta otra vez.',
+    message: 'Try zooming in a little bit more, then crop again.',
     tone: 'warning',
   },
 };
@@ -76,8 +77,8 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
   const counter = element(
     'p',
     'brief__counter',
-    `Misión ${mission.storyNumber} de ${STORY_MISSIONS.length} · ` +
-      `Pistas encontradas: ${storyFoundCount(context.getProgress())}/${STORY_MISSIONS.length}`,
+    `Mission ${mission.storyNumber} of ${STORY_MISSIONS.length} · ` +
+      `Clues found: ${storyFoundCount(context.getProgress())}/${STORY_MISSIONS.length}`,
   );
   brief.appendChild(counter);
   brief.appendChild(element('h2', 'brief__objective', `🔎 ${mission.objective}`));
@@ -88,18 +89,41 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
   const stage = createPosterStage({ poster: poster.canvas, showReadiness: true });
   root.appendChild(stage.root);
 
+  /*
+   * The crop guide.
+   *
+   * The readiness light answers "may I crop yet?" and a child who reaches green
+   * still has no idea WHAT to crop or how big - they crop too wide, too tight,
+   * or off-centre. The guide answers the second question and only the second
+   * question: it appears once the child has found the object AND zoomed in on
+   * it themselves, never before, so it teaches the gesture without giving away
+   * the search. See `src/viewer/cropGuide.ts`.
+   *
+   * Attached here rather than inside the stage because only a mission has a
+   * target: the tutorial and the drills use the same stage over a practice
+   * picture where there is nothing to guide towards.
+   */
+  let guidedMode = context.getProgress().guidedMode;
+  const guide: CropGuideHandle | null = target
+    ? attachCropGuide({ viewer: stage.viewer, target, guidedMode })
+    : null;
+  const stopWatchingGuidedMode = context.onGuidedModeChange((enabled) => {
+    guidedMode = enabled;
+    guide?.setGuidedMode(enabled);
+  });
+
   /* Evidence -------------------------------------------------------------- */
-  const continueButton = button('Siguiente misión ➜', 'button button--primary button--big');
+  const continueButton = button('Next mission ➜', 'button button--primary button--big');
   continueButton.hidden = true;
   continueButton.addEventListener('click', () => options.onContinue());
 
   const evidence = createEvidenceBox({
     compact: true,
-    title: 'Pega aquí tu evidencia',
-    hint: 'Recorta el objeto en la imagen de arriba con Windows + Shift + S.',
+    title: 'Paste your evidence here',
+    hint: 'Crop the object in the picture above with Windows + Shift + S.',
     onImage(pasted) {
       if (!target) {
-        evidence.say('Este póster no tiene ese objeto. Avísale a tu profe.', 'error');
+        evidence.say('This poster does not have that object. Tell your teacher.', 'error');
         return;
       }
 
@@ -108,8 +132,8 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
       const report = decodeSealWithDiagnostics(pasted.image);
       /*
        * The EFFECTIVE scale goes in - CSS zoom times device pixel ratio - so a
-       * crop taken below the readable floor is answered with "acércate", never
-       * with "esa no es la pista". A child who cannot possibly have produced a
+       * crop taken below the readable floor is answered with "zoom in", never
+       * with "that is not the clue". A child who cannot possibly have produced a
        * readable crop has not found the wrong object; they have not been given
        * a fair chance to find the right one.
        *
@@ -144,15 +168,15 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
           attempts: next.missions[mission.id]?.attempts ?? 1,
           precision: precisionOf(verdict),
         });
-        reward.textContent = `+${earned} puntos · pieza ${mission.puzzlePieceIndex + 1} desbloqueada`;
+        reward.textContent = `+${earned} points · piece ${mission.puzzlePieceIndex + 1} unlocked`;
         reward.hidden = false;
         continueButton.hidden = false;
         continueButton.focus();
       } else {
         context.sound.play('gentle');
         counter.textContent =
-          `Misión ${mission.storyNumber} de ${STORY_MISSIONS.length} · ` +
-          `Intentos: ${next.missions[mission.id]?.attempts ?? 1}`;
+          `Mission ${mission.storyNumber} of ${STORY_MISSIONS.length} · ` +
+          `Tries: ${next.missions[mission.id]?.attempts ?? 1}`;
       }
     },
   });
@@ -171,10 +195,20 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
       // The stage only has a size once the screen is in the document, and a fit
       // measured before that is a fit against nothing.
       stage.fit();
-      exposeDiagnostics(stage, poster);
+      exposeDiagnostics(stage, poster, {
+        guide,
+        target,
+        guidedMode: () => guidedMode,
+      });
     },
     destroy() {
       evidence.destroy();
+      stopWatchingGuidedMode();
+      // Before the stage: the guide clears its own overlay renderer, and doing
+      // that through a viewer whose observers are already gone is one more
+      // ordering nobody should have to remember.
+      guide?.destroy();
+      stage.destroy();
       if (isDevToolsRequested()) delete window.__missionProbe;
     },
   };
@@ -198,17 +232,38 @@ declare global {
       targets: LoadedPoster['targets'];
       scaleState: () => ReturnType<PosterStage['viewer']['getScaleState']>;
       readiness: () => ReturnType<PosterStage['readiness']>;
+      guidedMode: () => boolean;
+      guideTargetId: string | null;
+      guideVisible: () => boolean;
+      guideRect: () => ReturnType<CropGuideHandle['screenRect']> | null;
     };
   }
 }
 
-function exposeDiagnostics(stage: PosterStage, poster: LoadedPoster): void {
+/**
+ * The `?dev=1` probe. `guide` carries the crop-guide state so a CDP run can
+ * assert the guide is hidden at the opening zoom and visible once the light is
+ * green, which is the pair of facts a screenshot alone cannot prove.
+ */
+function exposeDiagnostics(
+  stage: PosterStage,
+  poster: LoadedPoster,
+  guideState: {
+    guide: CropGuideHandle | null;
+    target: LoadedPoster['targets'][number] | null | undefined;
+    guidedMode: () => boolean;
+  },
+): void {
   if (!isDevToolsRequested()) return;
   window.__missionProbe = {
     viewer: stage.viewer,
     targets: poster.targets,
     scaleState: () => stage.viewer.getScaleState(),
     readiness: () => stage.readiness(),
+    guidedMode: guideState.guidedMode,
+    guideTargetId: guideState.target?.id ?? null,
+    guideVisible: () => guideState.guide?.isVisible() ?? false,
+    guideRect: () => guideState.guide?.screenRect() ?? null,
   };
 }
 
@@ -218,10 +273,10 @@ function factsFor(
   width: number,
   height: number,
 ): Array<[string, string]> {
-  const facts: Array<[string, string]> = [['Tu recorte', `${width} x ${height} px`]];
-  if (verdict.capturedObjectName) facts.push(['Recortaste', verdict.capturedObjectName]);
+  const facts: Array<[string, string]> = [['Your crop', `${width} x ${height} px`]];
+  if (verdict.capturedObjectName) facts.push(['You cropped', verdict.capturedObjectName]);
   if (verdict.areaRatio !== undefined) {
-    facts.push(['Tamaño', `${verdict.areaRatio.toFixed(1)}x el objeto`]);
+    facts.push(['Size', `${verdict.areaRatio.toFixed(1)}x the object`]);
   }
   return facts;
 }

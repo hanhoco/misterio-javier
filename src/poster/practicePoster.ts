@@ -46,7 +46,7 @@ const CARD_SHAPE_RADIUS = 150;
 export interface PracticePosterOptions {
   shape: PracticeShape;
   sealCode: number;
-  /** Spanish name of the object, used as the target's mission name. */
+  /** Name of the object, used as the target's mission name. */
   name: string;
   id?: string;
 }

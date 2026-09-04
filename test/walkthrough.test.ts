@@ -111,7 +111,7 @@ describe('the snip step is never covered', () => {
   it('carries the one hard idea: the photo is of this window', () => {
     assert.equal(snip.diagram, true);
     assert.deepEqual([...(snip.keys ?? [])], ['Win', 'Shift', 'S']);
-    assert.match(snip.text, /ventana/);
+    assert.match(snip.text, /window/);
   });
 });
 
@@ -234,7 +234,7 @@ describe('walkthrough machine', () => {
     assert.equal(machine.total(), WALKTHROUGH_STEPS.length);
   });
 
-  it('stops on "Saltar guía" and reports that it was skipped, not finished', () => {
+  it('stops on "Skip the guide" and reports that it was skipped, not finished', () => {
     const { machine, ended } = fullTour();
     machine.skip();
 

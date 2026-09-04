@@ -68,7 +68,7 @@ export function defaultStorage(): StorageLike {
 
 /** Normalised so "Ana " and "ana" resume the same run. */
 function normalizeKeyPart(value: string): string {
-  return value.trim().toLocaleLowerCase('es-CO');
+  return value.trim().toLocaleLowerCase('en');
 }
 
 export function progressKey(name: string, classCode: string): string {
@@ -132,6 +132,19 @@ export function parseProgress(raw: unknown): GameProgress | null {
      * save - the missions, the score, the name - loads exactly as before.
      */
     soundEnabled: raw.soundEnabled === true,
+    /*
+     * Read as "guided unless the save explicitly says otherwise", which is the
+     * opposite polarity to `soundEnabled` above and deliberately so.
+     *
+     * Sound defaults off because a classroom is a shared room, so an unreadable
+     * value must not turn thirty speakers on. The crop guide defaults ON
+     * because an unreadable value must not drop a class of seven year olds into
+     * detective mode halfway through a lesson - the failure that costs
+     * something here is the guide going missing, not the guide appearing. A
+     * truncated write, an older save with no such field, a string, a null: all
+     * of them land on guided.
+     */
+    guidedMode: raw.guidedMode !== false,
     currentMissionIndex,
     missions,
   };

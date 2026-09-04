@@ -1,7 +1,8 @@
 /**
  * The shell: routing, persistence and the chrome that stays on screen.
  *
- * Code is English; every string the child or the teacher reads is Spanish.
+ * Code and copy are both English; every string here is read by a child or a
+ * teacher.
  *
  * Three things live here and nowhere else.
  *
@@ -78,16 +79,16 @@ export function mountApp(root: HTMLElement): void {
 
   const header = element('header', 'app__header');
   const brand = element('div', 'app__brand');
-  brand.appendChild(element('p', 'app__title', '🔎 EL MISTERIO DE JAVIER'));
+  brand.appendChild(element('p', 'app__title', '🔎 THE MYSTERY OF JAVIER'));
   const whoChip = element('p', 'app__who', '');
   brand.appendChild(whoChip);
   header.appendChild(brand);
 
   const headerActions = element('div', 'app__actions');
-  const codeButton = button('Ver mi código', 'button button--ghost button--small');
-  const trainingButton = button('Entrenamiento', 'button button--ghost button--small');
-  const soundButton = button('Sonido: apagado', 'button button--ghost button--small');
-  const profileButton = button('Cambiar detective', 'button button--ghost button--small');
+  const codeButton = button('See my code', 'button button--ghost button--small');
+  const trainingButton = button('Training', 'button button--ghost button--small');
+  const soundButton = button('Sound: off', 'button button--ghost button--small');
+  const profileButton = button('Change detective', 'button button--ghost button--small');
   headerActions.append(codeButton, trainingButton, soundButton, profileButton);
   header.appendChild(headerActions);
   root.appendChild(header);
@@ -106,7 +107,7 @@ export function mountApp(root: HTMLElement): void {
   layout.appendChild(body);
 
   const rail = element('aside', 'rail');
-  rail.appendChild(element('p', 'rail__title', 'Tu avance'));
+  rail.appendChild(element('p', 'rail__title', 'Your progress'));
 
   const puzzleStrip = element('div', 'rail__puzzle');
   let puzzleBoard: PuzzleBoard | null = null;
@@ -136,13 +137,13 @@ export function mountApp(root: HTMLElement): void {
   const devTools = element('details', 'dev-tools');
   const devToolsRequested = isDevToolsRequested();
   if (devToolsRequested) {
-    devTools.appendChild(element('summary', 'dev-tools__summary', 'Herramientas (dev)'));
-    const markingButton = button('Marcar objetos del póster', 'button button--ghost');
+    devTools.appendChild(element('summary', 'dev-tools__summary', 'Tools (dev)'));
+    const markingButton = button('Mark poster objects', 'button button--ghost');
     markingButton.addEventListener('click', () => {
       if (closeMarkingTool) {
         closeMarkingTool();
         closeMarkingTool = null;
-        markingButton.textContent = 'Marcar objetos del póster';
+        markingButton.textContent = 'Mark poster objects';
         return;
       }
       markingButton.disabled = true;
@@ -153,10 +154,10 @@ export function mountApp(root: HTMLElement): void {
             onClose: () => {
               closeMarkingTool?.();
               closeMarkingTool = null;
-              markingButton.textContent = 'Marcar objetos del póster';
+              markingButton.textContent = 'Mark poster objects';
             },
           });
-          markingButton.textContent = 'Cerrar marcador';
+          markingButton.textContent = 'Close the marker';
         })
         .catch((error: unknown) => console.error('Marking tool failed', error))
         .finally(() => {
@@ -182,9 +183,21 @@ export function mountApp(root: HTMLElement): void {
     devTools.hidden = !visible || !devToolsRequested;
   }
 
+  /**
+   * Screens that draw the crop guide subscribe here so the teacher's toggle
+   * reaches them without a re-render. A plain Set rather than an event target:
+   * the only publisher is `persist`, and unsubscribing has to be cheap because
+   * every screen does it in `destroy()`.
+   */
+  const guidedModeListeners = new Set<(guidedMode: boolean) => void>();
+
   function persist(next: GameProgress): void {
+    const before = progress?.guidedMode;
     progress = next;
     saveProgress(next);
+    if (before !== undefined && before !== next.guidedMode) {
+      for (const listener of guidedModeListeners) listener(next.guidedMode);
+    }
   }
 
   /** The mission the child should be looking at right now. */
@@ -198,24 +211,24 @@ export function mountApp(root: HTMLElement): void {
   function refreshChrome(): void {
     if (!progress) return;
 
-    whoChip.textContent = `Detective ${progress.name} · curso ${progress.classCode}`;
+    whoChip.textContent = `Detective ${progress.name} · class ${progress.classCode}`;
 
     const found = storyFoundCount(progress);
     const percent = Math.round((found / STORY_MISSIONS.length) * 100);
     progressFill.style.width = `${percent}%`;
-    progressLabel.textContent = `${found} de ${STORY_MISSIONS.length} pistas`;
+    progressLabel.textContent = `${found} of ${STORY_MISSIONS.length} clues`;
     // Earned points only. "0 / 5375" is a strange ceiling to hand a nine year
     // old; the maximum is a thing the teacher panel needs, not the child.
-    scoreChip.textContent = `${progressScore(progress)} puntos`;
+    scoreChip.textContent = `${progressScore(progress)} points`;
 
-    soundButton.textContent = progress.soundEnabled ? 'Sonido: encendido' : 'Sonido: apagado';
+    soundButton.textContent = progress.soundEnabled ? 'Sound: on' : 'Sound: off';
     soundButton.setAttribute('aria-pressed', String(progress.soundEnabled));
 
     if (!puzzleBoard) {
       puzzleBoard = createPuzzleBoard({ variant: 'compact' });
       puzzleStrip.appendChild(puzzleBoard.root);
       puzzleStrip.appendChild(
-        element('p', 'rail__hint', 'Cada pista destapa una pieza.'),
+        element('p', 'rail__hint', 'Every clue uncovers a piece.'),
       );
     }
     puzzleBoard.setUnlocked(unlockedPuzzlePieces(progress));
@@ -247,6 +260,12 @@ export function mountApp(root: HTMLElement): void {
       progress = null;
       mode = 'profile';
       render();
+    },
+    onGuidedModeChange(listener) {
+      guidedModeListeners.add(listener);
+      return () => {
+        guidedModeListeners.delete(listener);
+      };
     },
   };
 
@@ -308,8 +327,8 @@ export function mountApp(root: HTMLElement): void {
             /*
              * Straight into mission 1. The tutorial used to sit here on a first
              * run; the teacher watched a class meet it and asked for it off the
-             * startup path, so "¡Empezar la misión!" now means what it says.
-             * It is still one press of "Entrenamiento" away, and that button is
+             * startup path, so "Start the mission!" now means what it says.
+             * It is still one press of "Training" away, and that button is
              * still where the Windows + Shift + S explanation lives.
              *
              * Nothing about a profile decides this any more, which is the
@@ -340,7 +359,7 @@ export function mountApp(root: HTMLElement): void {
           isReplay: trainingIsReplay,
           /*
            * The tutorial is now only ever reached on purpose, from the
-           * "Entrenamiento" button, so the tour that teaches the layout runs
+           * "Training" button, so the tour that teaches the layout runs
            * every time it is asked for. Nothing is remembered about either one:
            * a flag that could put them back in front of a child on startup is
            * exactly what was removed.
@@ -384,7 +403,7 @@ export function mountApp(root: HTMLElement): void {
       return;
     }
 
-    showLoading('Preparando el parque…');
+    showLoading('Getting the park ready…');
     void context
       .poster()
       .then((poster) => {
@@ -404,7 +423,7 @@ export function mountApp(root: HTMLElement): void {
         // A failed load is permanent for this session, so offer the one thing
         // that actually helps rather than a spinner that never ends.
         posterPromise = null;
-        showLoading('No pude preparar el parque. Recarga la página, por favor.');
+        showLoading('I could not get the park ready. Please reload the page.');
       });
   }
 
@@ -414,13 +433,13 @@ export function mountApp(root: HTMLElement): void {
     if (!progress) return;
     if (!codePanel.hidden) {
       codePanel.hidden = true;
-      codeButton.textContent = 'Ver mi código';
+      codeButton.textContent = 'See my code';
       return;
     }
     codePanel.textContent = '';
     codePanel.appendChild(createResultCodeCard(progress));
     codePanel.hidden = false;
-    codeButton.textContent = 'Ocultar mi código';
+    codeButton.textContent = 'Hide my code';
   });
 
   trainingButton.addEventListener('click', () => context.replayTraining());

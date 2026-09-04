@@ -65,7 +65,7 @@ export interface ResultCodeData {
 
 export type ResultCodeParse =
   | { ok: true; value: ResultCodeData }
-  /** `error` is Spanish: it is shown to the teacher verbatim. */
+  /** `error` is shown to the teacher verbatim. */
   | { ok: false; error: string };
 
 /* -------------------------------------------------------------------------- */
@@ -270,45 +270,45 @@ function fail(error: string): ResultCodeParse {
   return { ok: false, error };
 }
 
-/** Reads a code back. Every failure path returns a Spanish explanation. */
+/** Reads a code back. Every failure path returns a plain explanation. */
 export function decodeResultCode(code: string): ResultCodeParse {
   const cleaned = code.trim().toUpperCase().replace(/\s+/g, '');
-  if (cleaned.length === 0) return fail('El código está vacío.');
+  if (cleaned.length === 0) return fail('The code is empty.');
 
   const groups = cleaned.split('-').filter((group) => group.length > 0);
   if (groups.length < 2) {
-    return fail('El código debe tener un nombre y luego grupos separados por guiones.');
+    return fail('The code must have a name and then groups separated by dashes.');
   }
 
   const [name, ...payloadGroups] = groups;
   if (!/^[A-Z]{1,8}$/.test(name)) {
-    return fail(`El nombre "${name}" solo puede tener letras (máximo ${MAX_NAME_LENGTH}).`);
+    return fail(`The name "${name}" can only have letters (${MAX_NAME_LENGTH} at most).`);
   }
 
   const payload = payloadGroups.join('');
   const stray = [...payload].find((character) => !RESULT_CODE_ALPHABET.includes(character));
   if (stray !== undefined) {
-    return fail(`El código tiene un carácter que no se usa en el juego: "${stray}".`);
+    return fail(`The code has a character the game does not use: "${stray}".`);
   }
 
   const value = fromBase31(payload);
-  if (value === null) return fail('El código tiene caracteres inválidos.');
+  if (value === null) return fail('The code has invalid characters.');
 
   const body = bigIntToBytes(value);
   // Sentinel + version + count + at least one checksum-sized tail.
   if (body.length < 7 || body[0] !== 0x01) {
-    return fail('El código está incompleto o dañado.');
+    return fail('The code is incomplete or damaged.');
   }
 
   const version = body[1];
   if (version !== RESULT_CODE_VERSION) {
-    return fail(`El código es de otra versión del juego (versión ${version}).`);
+    return fail(`The code is from another version of the game (version ${version}).`);
   }
 
   const count = body[2];
   const packedLength = Math.ceil((count * BITS_PER_MISSION) / 8);
   if (body.length !== 3 + packedLength + 4) {
-    return fail('El código está incompleto o dañado.');
+    return fail('The code is incomplete or damaged.');
   }
 
   const packed = body.slice(3, 3 + packedLength);
@@ -321,7 +321,7 @@ export function decodeResultCode(code: string): ResultCodeParse {
   const header = Uint8Array.from([version, count]);
   const actual = crc32(concatBytes(nameBytes(name), header, packed));
   if (actual !== (expected >>> 0)) {
-    return fail('El código no pasó la verificación. Revisa si está bien copiado.');
+    return fail('The code failed its check. See if it was copied correctly.');
   }
 
   return { ok: true, value: { name, missions: unpackMissions(packed, count) } };

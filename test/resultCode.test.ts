@@ -193,14 +193,14 @@ describe('result code corruption', () => {
 });
 
 describe('result code rejection messages', () => {
-  test('names the problem in Spanish for every malformed input', () => {
+  test('names the problem in plain English for every malformed input', () => {
     const cases = ['', '   ', 'ANA', 'AN4-2222-2222', 'ANA-2O22-2222', 'ANA-2222'];
     for (const input of cases) {
       const parsed = decodeResultCode(input);
       assert.equal(parsed.ok, false, `expected "${input}" to be rejected`);
       if (!parsed.ok) {
         assert.ok(parsed.error.length > 0);
-        assert.match(parsed.error, /código|nombre/i);
+        assert.match(parsed.error, /code|name/i);
       }
     }
   });

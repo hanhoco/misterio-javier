@@ -172,9 +172,9 @@ function drawMessage(ctx: CanvasRenderingContext2D): void {
 
   ctx.fillStyle = '#1d2340';
   ctx.font = 'bold 40px "Trebuchet MS", "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('¡GRACIAS, DETECTIVE!', REVEAL_WIDTH / 2, REVEAL_HEIGHT - 92);
+  ctx.fillText('THANK YOU, DETECTIVE!', REVEAL_WIDTH / 2, REVEAL_HEIGHT - 92);
   ctx.font = 'bold 26px "Trebuchet MS", "Segoe UI", system-ui, sans-serif';
-  ctx.fillText('Encontraste todo lo que perdí.', REVEAL_WIDTH / 2, REVEAL_HEIGHT - 56);
+  ctx.fillText('You found everything I lost.', REVEAL_WIDTH / 2, REVEAL_HEIGHT - 56);
 }
 
 /** Renders the finished picture. Cheap enough to call whenever it is needed. */

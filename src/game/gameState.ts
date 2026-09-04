@@ -44,14 +44,29 @@ export interface GameProgress {
    *
    * Both existed to force the tutorial and the guided tour on a first run, and
    * a teacher who watched a class meet them asked for that off the startup
-   * path: "¡Empezar la misión!" now goes straight to mission 1. Both screens
-   * are still reachable from the "Entrenamiento" button, on purpose, every
+   * path: "Start the mission!" now goes straight to mission 1. Both screens
+   * are still reachable from the "Training" button, on purpose, every
    * time - which needs nothing remembered about them.
    *
    * Reintroducing a flag here is how the tutorial comes back unasked. An old
    * profile that still carries one loads fine; `parseProgress` ignores it.
    */
   soundEnabled: boolean;
+  /**
+   * Guided mode: the crop guide is drawn once the child is close enough.
+   *
+   * Defaults ON, and that default is a teaching decision rather than a
+   * preference. Today's goal is thirty children finishing fifteen missions
+   * without frustration, and a child who has found the object and zoomed in on
+   * it still has no idea what shape to drag. Once they own the gesture the
+   * teacher turns it off and the game becomes a real challenge - which is why
+   * it is a switch and not a permanent feature.
+   *
+   * Anything unrecognised in storage degrades to ON. See `parseProgress`: a
+   * corrupt save that silently dropped a class into detective mode is the one
+   * failure mode this flag must not have.
+   */
+  guidedMode: boolean;
   /** Index into `MISSIONS` of the mission on screen. */
   currentMissionIndex: number;
   /** Keyed by mission id. Missions never attempted are simply absent. */
@@ -71,6 +86,8 @@ export function createProgress(name: string, classCode: string): GameProgress {
     classCode,
     /** Sound is off until the child turns it on. Classrooms are shared rooms. */
     soundEnabled: false,
+    /** Guided until the teacher says otherwise. See `GameProgress.guidedMode`. */
+    guidedMode: true,
     currentMissionIndex: 0,
     missions: {},
   };
@@ -138,6 +155,10 @@ export function recordAttempt(
 
 export function setSoundEnabled(progress: GameProgress, soundEnabled: boolean): GameProgress {
   return { ...progress, soundEnabled };
+}
+
+export function setGuidedMode(progress: GameProgress, guidedMode: boolean): GameProgress {
+  return { ...progress, guidedMode };
 }
 
 export function goToMission(progress: GameProgress, index: number): GameProgress {

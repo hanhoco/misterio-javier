@@ -24,26 +24,26 @@ export function createResultCodeCard(progress: GameProgress): HTMLElement {
   const code = resultCodeFor(progress);
 
   const card = element('section', 'result-code');
-  card.appendChild(element('h3', 'result-code__title', 'Tu código de resultados'));
+  card.appendChild(element('h3', 'result-code__title', 'Your result code'));
   card.appendChild(
     element(
       'p',
       'result-code__hint',
-      'Dile o escríbele este código a tu profe. Con él puede ver cómo te fue.',
+      'Read or write this code to your teacher. With it they can see how you did.',
     ),
   );
 
   const value = element('p', 'result-code__value', code);
-  value.setAttribute('aria-label', `Código de resultados: ${code.split('').join(' ')}`);
+  value.setAttribute('aria-label', `Result code: ${code.split('').join(' ')}`);
   card.appendChild(value);
 
-  const copy = button('Copiar el código', 'button button--ghost');
+  const copy = button('Copy the code', 'button button--ghost');
   const status = element('span', 'result-code__status', '');
   status.setAttribute('role', 'status');
 
   copy.addEventListener('click', () => {
     const done = () => {
-      status.textContent = '¡Copiado!';
+      status.textContent = 'Copied!';
       window.setTimeout(() => {
         status.textContent = '';
       }, 2500);
@@ -61,7 +61,7 @@ export function createResultCodeCard(progress: GameProgress): HTMLElement {
         range.selectNodeContents(value);
         selection.removeAllRanges();
         selection.addRange(range);
-        status.textContent = 'Selecciónalo y presiona Ctrl + C.';
+        status.textContent = 'Select it and press Ctrl + C.';
       });
   });
 

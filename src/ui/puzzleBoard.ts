@@ -39,7 +39,7 @@ export function createPuzzleBoard(options: PuzzleBoardOptions = {}): PuzzleBoard
   // the stylesheet is how 200x200 pieces ended up squashed into 83x50 boxes.
   root.style.setProperty('--puzzle-aspect', `${pieceWidth} / ${pieceHeight}`);
   root.setAttribute('role', 'img');
-  root.setAttribute('aria-label', 'Rompecabezas del misterio de Javier');
+  root.setAttribute('aria-label', 'The Mystery of Javier jigsaw');
 
   const cells: HTMLElement[] = [];
 
@@ -78,7 +78,7 @@ export function createPuzzleBoard(options: PuzzleBoardOptions = {}): PuzzleBoard
       cell.classList.toggle('is-open', isOpen);
       cell.setAttribute(
         'aria-label',
-        isOpen ? `Pieza ${index + 1} descubierta` : `Pieza ${index + 1} todavía escondida`,
+        isOpen ? `Piece ${index + 1} uncovered` : `Piece ${index + 1} still hidden`,
       );
     });
   };

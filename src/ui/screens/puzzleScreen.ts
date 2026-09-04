@@ -30,14 +30,14 @@ export function createPuzzleScreen(options: PuzzleScreenOptions): Screen {
 
   const banner = element('div', 'finale__banner');
   banner.appendChild(
-    element('h1', 'finale__title', '🏆 ¡RESOLVISTE EL MISTERIO DE JAVIER!'),
+    element('h1', 'finale__title', '🏆 YOU SOLVED THE MYSTERY OF JAVIER!'),
   );
   banner.appendChild(
     element(
       'p',
       'finale__subtitle',
-      `Encontraste las ${STORY_MISSIONS.length} pistas y aprendiste todos los atajos. ` +
-        'Javier te lo agradece.',
+      `You found all ${STORY_MISSIONS.length} clues and learned every shortcut. ` +
+        'Javier says thank you.',
     ),
   );
   root.appendChild(banner);
@@ -49,9 +49,9 @@ export function createPuzzleScreen(options: PuzzleScreenOptions): Screen {
   const score = progressScore(progress);
   const stats = element('div', 'finale__stats');
   for (const [label, value] of [
-    ['Pistas encontradas', `${storyFoundCount(progress)}/${STORY_MISSIONS.length}`],
-    ['Puntaje', `${score} de ${maxTotalScore(MISSION_REWARDS)}`],
-    ['Intentos usados', String(totalAttempts(progress))],
+    ['Clues found', `${storyFoundCount(progress)}/${STORY_MISSIONS.length}`],
+    ['Score', `${score} of ${maxTotalScore(MISSION_REWARDS)}`],
+    ['Tries used', String(totalAttempts(progress))],
   ] as const) {
     const stat = element('div', 'stat');
     stat.appendChild(element('span', 'stat__value', value));
@@ -63,9 +63,9 @@ export function createPuzzleScreen(options: PuzzleScreenOptions): Screen {
   root.appendChild(createResultCodeCard(progress));
 
   const actions = element('div', 'finale__actions');
-  const replay = button('Repetir el entrenamiento', 'button button--ghost');
+  const replay = button('Do the training again', 'button button--ghost');
   replay.addEventListener('click', options.onReplayTraining);
-  const change = button('Jugar con otro nombre', 'button button--ghost');
+  const change = button('Play with another name', 'button button--ghost');
   change.addEventListener('click', options.onChangeProfile);
   actions.append(replay, change);
   root.appendChild(actions);

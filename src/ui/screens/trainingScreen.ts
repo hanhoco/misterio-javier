@@ -3,7 +3,7 @@
  *
  * It no longer sits between the profile screen and mission 1: a teacher watched
  * a class meet it there and asked for it off the startup path. It is reached
- * from the "Entrenamiento" button, on purpose, and it is still where the
+ * from the "Training" button, on purpose, and it is still where the
  * Windows + Shift + S explanation lives - so it is kept whole rather than
  * deleted, ready to be put back in front of a class the moment it is wanted.
  *
@@ -64,7 +64,7 @@ export function createTrainingScreen(options: TrainingScreenOptions): Screen {
   header.appendChild(heading);
 
   const skip = button(
-    options.isReplay ? 'Volver a las misiones' : 'Ya sé hacerlo, saltar',
+    options.isReplay ? 'Back to the missions' : 'I know how, skip',
     'button button--ghost',
   );
   skip.addEventListener('click', () => options.onDone());
@@ -114,24 +114,24 @@ export function createTrainingScreen(options: TrainingScreenOptions): Screen {
   });
 
   const evidence = createEvidenceBox({
-    hint: 'Cuando termines el recorte, presiona Ctrl + V aquí.',
+    hint: 'When you finish the crop, press Ctrl + V here.',
     onImage(pasted) {
       evidence.showPreview(pasted);
       // Deliberately not graded: receipt only.
-      evidence.say('Recibí tu recorte. 👍', 'success');
+      evidence.say('Got your crop. 👍', 'success');
       steps.fire('paste');
       walkthrough?.fire('paste');
     },
     onNonImage() {
       evidence.say(
-        'Todavía no hay una imagen en el portapapeles. Vuelve a recortar con ' +
-          'Windows + Shift + S y pega otra vez.',
+        'There is no image on the clipboard yet. Crop again with ' +
+          'Windows + Shift + S and paste once more.',
         'warning',
       );
     },
   });
 
-  const continueButton = button('¡Vamos a la misión 1!', 'button button--primary button--big');
+  const continueButton = button('On to mission 1!', 'button button--primary button--big');
   continueButton.hidden = true;
   continueButton.addEventListener('click', () => options.onDone());
 
@@ -176,6 +176,7 @@ export function createTrainingScreen(options: TrainingScreenOptions): Screen {
       walkthrough?.destroy();
       walkthrough = null;
       evidence.destroy();
+      stage.destroy();
     },
   };
 }

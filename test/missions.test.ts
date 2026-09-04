@@ -99,7 +99,7 @@ describe('mission catalogue', () => {
   });
 
   /**
-   * The "Recorta aquí" marker is pinned to the bottom-right corner of the
+   * The "Crop here" marker is pinned to the bottom-right corner of the
    * poster stage, and that is only safe because no park target reaches it. If
    * a sixteenth target is ever measured into that corner, the marker starts
    * covering a clue and this test is the thing that says so.
@@ -115,11 +115,11 @@ describe('mission catalogue', () => {
     assert.deepEqual(
       trespassers,
       [],
-      'a target now sits under the "Recorta aquí" marker; move the marker',
+      'a target now sits under the "Crop here" marker; move the marker',
     );
   });
 
-  test('every mission the child plays has a Spanish objective', () => {
+  test('every mission the child plays has an objective and a title', () => {
     for (const mission of MISSIONS) {
       assert.ok(mission.objective.length > 0);
       assert.ok(mission.title.length > 0);

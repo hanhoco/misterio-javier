@@ -24,6 +24,7 @@
     "src/validation",
     "src/viewer/viewerGeometry.ts",
     "src/viewer/zoomReadiness.ts",
+    "src/viewer/cropGuide.ts",
     "src/game/scoring.ts",
     "src/game/missions.ts",
     "src/game/gameState.ts",

@@ -35,10 +35,10 @@ interface Badge {
 
 /** Bands chosen to describe effort, not to rank children against each other. */
 function badgeFor(percent: number): Badge {
-  if (percent >= 90) return { label: '🏆 Detective experto', className: 'is-gold' };
+  if (percent >= 90) return { label: '🏆 Expert detective', className: 'is-gold' };
   if (percent >= 70) return { label: '🥇 Detective', className: 'is-silver' };
-  if (percent >= 40) return { label: '🔍 Aprendiz', className: 'is-bronze' };
-  return { label: '🌱 En camino', className: 'is-start' };
+  if (percent >= 40) return { label: '🔍 Apprentice', className: 'is-bronze' };
+  return { label: '🌱 On the way', className: 'is-start' };
 }
 
 interface Row {
@@ -84,9 +84,9 @@ function toRow(name: string, missions: readonly MissionResult[]): Row {
     if (result.found) storyFound += 1;
     if (!result.found || result.attempts >= 3) {
       const detail = result.found
-        ? `${result.attempts} intentos, ${PRECISION_TIER_LABELS[result.precision]}`
-        : 'sin encontrar';
-      trouble.push(`${mission.objective.replace(/^Encuentra /, '')} (${detail})`);
+        ? `${result.attempts} tries, ${PRECISION_TIER_LABELS[result.precision]}`
+        : 'not found';
+      trouble.push(`${mission.objective.replace(/^Find /, '')} (${detail})`);
     }
   });
 
@@ -102,18 +102,18 @@ export function createTeacherScreen(options: TeacherScreenOptions): Screen {
 
   const header = element('div', 'screen__header');
   const heading = element('div', 'screen__heading');
-  heading.appendChild(element('h1', 'screen__title', 'Panel del docente'));
+  heading.appendChild(element('h1', 'screen__title', 'Teacher panel'));
   heading.appendChild(
     element(
       'p',
       'screen__subtitle',
-      'Pega aquí un código de resultados por línea. Todo se procesa en este ' +
-        'computador: no se envía nada a internet.',
+      'Paste one result code per line here. Everything is processed on this ' +
+        'computer: nothing is sent to the internet.',
     ),
   );
   header.appendChild(heading);
 
-  const back = button('Volver al juego', 'button button--ghost');
+  const back = button('Back to the game', 'button button--ghost');
   back.addEventListener('click', options.onBack);
   header.appendChild(back);
   root.appendChild(header);
@@ -122,12 +122,12 @@ export function createTeacherScreen(options: TeacherScreenOptions): Screen {
   input.rows = 8;
   input.spellcheck = false;
   input.placeholder = 'ANA-5F3K-92Q1-…\nJAVIER-7MTP-3XQ2-…';
-  input.setAttribute('aria-label', 'Códigos de resultados, uno por línea');
+  input.setAttribute('aria-label', 'Result codes, one per line');
   root.appendChild(input);
 
   const actions = element('div', 'teacher__actions');
-  const read = button('Leer los códigos', 'button button--primary');
-  const clearButton = button('Limpiar', 'button button--ghost');
+  const read = button('Read the codes', 'button button--primary');
+  const clearButton = button('Clear', 'button button--ghost');
   actions.append(read, clearButton);
   root.appendChild(actions);
 
@@ -148,13 +148,13 @@ export function createTeacherScreen(options: TeacherScreenOptions): Screen {
     const head = element('thead');
     const headRow = element('tr');
     for (const label of [
-      'Estudiante',
-      'Progreso',
-      'Misiones',
-      'Puntaje',
-      'Resultado',
-      'Intentos',
-      'Dónde le costó',
+      'Student',
+      'Progress',
+      'Missions',
+      'Score',
+      'Result',
+      'Tries',
+      'Where they struggled',
     ]) {
       headRow.appendChild(element('th', undefined, label));
     }
@@ -188,7 +188,7 @@ export function createTeacherScreen(options: TeacherScreenOptions): Screen {
         element(
           'td',
           'results__trouble',
-          row.trouble.length === 0 ? 'Sin dificultades' : row.trouble.join(' · '),
+          row.trouble.length === 0 ? 'No trouble' : row.trouble.join(' · '),
         ),
       );
 
@@ -210,7 +210,7 @@ export function createTeacherScreen(options: TeacherScreenOptions): Screen {
     if (lines.length === 0) {
       renderTable([]);
       errors.appendChild(
-        element('p', 'teacher__error', 'Pega al menos un código para poder leerlo.'),
+        element('p', 'teacher__error', 'Paste at least one code so it can be read.'),
       );
       return;
     }
@@ -226,7 +226,7 @@ export function createTeacherScreen(options: TeacherScreenOptions): Screen {
           element(
             'p',
             'teacher__error',
-            `Línea ${entry.number} ("${entry.line}"): ${parsed.error}`,
+            `Line ${entry.number} ("${entry.line}"): ${parsed.error}`,
           ),
         );
         continue;
@@ -236,9 +236,8 @@ export function createTeacherScreen(options: TeacherScreenOptions): Screen {
 
     renderTable(rows);
     summary.textContent =
-      `${rows.length} código${rows.length === 1 ? '' : 's'} leído` +
-      `${rows.length === 1 ? '' : 's'}` +
-      (rejected === 0 ? '.' : `, ${rejected} con problemas.`);
+      `${rows.length} code${rows.length === 1 ? '' : 's'} read` +
+      (rejected === 0 ? '.' : `, ${rejected} with problems.`);
   }
 
   read.addEventListener('click', run);

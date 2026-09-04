@@ -5,7 +5,7 @@
  * again, so a new poster target becomes a new mission with no code change. The
  * shortcut drills sit between them at declared positions, also as data.
  *
- * Code identifiers are English; every string a child reads is Spanish.
+ * Code identifiers and every string a child reads are both English.
  *
  * Nothing here touches the DOM, so the whole catalogue is importable from plain
  * Node for the tests.
@@ -46,13 +46,13 @@ export type StepTrigger =
 
 /** One step of a guided sequence. */
 export interface GuidedStep {
-  /** Spanish instruction, one short line. */
+  /** The instruction, one short line. */
   text: string;
   /** Keys to draw as a visual hint, e.g. `['Ctrl', 'V']`. */
   keys?: readonly string[];
   trigger: StepTrigger;
   /**
-   * Spanish label of the manual "I did it" button.
+   * Label of the manual "I did it" button.
    *
    * Present on every step that the browser cannot observe (and on the ones it
    * can only observe indirectly), so a child can never get stuck behind a cue
@@ -114,9 +114,9 @@ interface MissionBase {
   id: string;
   /** Position in the playable order, 0 based. */
   order: number;
-  /** Short Spanish heading. */
+  /** Short heading. */
   title: string;
-  /** The one line that says what to do, Spanish. */
+  /** The one line that says what to do. */
   objective: string;
   rewards: MissionRewards;
 }
@@ -126,11 +126,11 @@ export interface StoryMission extends MissionBase {
   /** Which park target this mission is about. */
   targetId: string;
   sealCode: number;
-  /** 1 based number the child sees ("Misión 3 de 15"). */
+  /** 1 based number the child sees ("Mission 3 of 15"). */
   storyNumber: number;
   /** Which puzzle piece this mission unlocks. */
   puzzlePieceIndex: number;
-  /** A nudge in story voice, Spanish. */
+  /** A nudge in story voice. */
   clue: string;
 }
 
@@ -145,7 +145,7 @@ export interface DrillMission extends MissionBase {
   sealCode?: number;
   /** Which practice picture to draw, for the drills that show one. */
   shape?: PracticeShape;
-  /** Spanish name of that picture, as the objective refers to it. */
+  /** Name of that picture, as the objective refers to it. */
   shapeName?: string;
 }
 
@@ -157,8 +157,8 @@ export type Mission = StoryMission | DrillMission;
 
 /** The framing the child reads on the profile screen. */
 export const STORY_INTRO =
-  'Javier perdió varias cosas importantes en el parque. Hay pistas escondidas ' +
-  'por todas partes. Tu misión es encontrarlas y enviar la evidencia.';
+  'Javier lost some important things in the park. There are clues hidden all ' +
+  'over the place. Your mission is to find them and send the evidence.';
 
 /**
  * One clue line per park target, keyed by target id.
@@ -167,21 +167,21 @@ export const STORY_INTRO =
  * catalogue describes geometry and this describes the story told over it.
  */
 const STORY_CLUES: Record<string, string> = {
-  kite: 'El viento se llevó algo de Javier muy alto. Levanta la vista al cielo.',
-  slide: 'Alguien lo vio bajar una y otra vez por el juego más alto del parque.',
-  swings: 'Se escucha algo que va y viene, va y viene. ¿Quién se está balanceando?',
-  pond: 'Hay plumas mojadas en la orilla. Los patos vieron algo esa tarde.',
-  bridge: 'Para pasar al otro lado hay que caminar sobre unas tablas de madera.',
-  oak: 'El árbol más alto del parque da mucha sombra… y guarda una pista.',
-  pinkBlanket: 'Quedaron migas de pan sobre una tela de cuadros rosados.',
-  blueBlanket: 'Abajo, a la izquierda, otra familia extendió una tela azul.',
-  yellowTruck: 'Huele riquísimo cerca de la escuela. Algo amarillo vende comida ahí.',
-  whiteTruck: 'Abajo a la derecha hay otro puesto de comida, este es blanco.',
-  schoolBus: 'Un vehículo largo pasa por la calle. ¿Javier se habrá subido?',
-  school: 'El edificio de ladrillo con reloj lo vio todo desde arriba.',
-  carousel: 'Se oye música bajo un techo rojo y redondo. Acércate.',
-  goal: 'Alguien pateó el balón con fuerza hacia la red. Busca la portería.',
-  garden: 'Entre las verduras sembradas quedaron huellas fresquitas.',
+  kite: 'The wind carried something of Javier’s way up high. Look at the sky.',
+  slide: 'Someone saw him go down the tallest thing in the playground again and again.',
+  swings: 'You can hear something going back and forth, back and forth. Who is swinging?',
+  pond: 'There are wet feathers on the bank. The ducks saw something that afternoon.',
+  bridge: 'To get to the other side you have to walk over some wooden planks.',
+  oak: 'The tallest tree in the park makes lots of shade… and it is hiding a clue.',
+  pinkBlanket: 'Someone left bread crumbs on a pink checked cloth.',
+  blueBlanket: 'Down on the left, another family spread out a blue cloth.',
+  yellowTruck: 'Something smells delicious near the school. A yellow one sells food there.',
+  whiteTruck: 'Down on the right there is another food stand, and this one is white.',
+  schoolBus: 'A long vehicle is going down the road. Did Javier get on it?',
+  school: 'The brick building with the clock saw everything from up high.',
+  carousel: 'You can hear music under a round red roof. Go closer.',
+  goal: 'Someone kicked the ball hard at the net. Look for the goal.',
+  garden: 'There are fresh footprints between the planted vegetables.',
 };
 
 function toStoryMission(target: ParkTarget, storyIndex: number): Omit<StoryMission, 'order'> {
@@ -192,9 +192,9 @@ function toStoryMission(target: ParkTarget, storyIndex: number): Omit<StoryMissi
     sealCode: target.sealCode,
     storyNumber: storyIndex + 1,
     puzzlePieceIndex: storyIndex,
-    title: `Misión ${storyIndex + 1}`,
-    objective: `Encuentra ${target.name}`,
-    clue: STORY_CLUES[target.id] ?? 'Busca con calma. La pista está a la vista.',
+    title: `Mission ${storyIndex + 1}`,
+    objective: `Find ${target.name}`,
+    clue: STORY_CLUES[target.id] ?? 'Take your time. The clue is in plain sight.',
     rewards: STORY_REWARDS,
   };
 }
@@ -221,22 +221,22 @@ const DRILL_PLACEMENTS: readonly DrillPlacement[] = [
     mission: {
       kind: 'drill',
       id: 'drill-zoom',
-      title: 'Práctica de teclas: acercar',
-      objective: 'Aprende a acercar toda la pantalla con el teclado.',
+      title: 'Key practice: zoom in',
+      objective: 'Learn how to make the whole screen bigger with the keyboard.',
       drill: 'zoom',
       rewards: KEY_DRILL_REWARDS,
       steps: [
         {
-          text: 'Mantén presionada la tecla Ctrl y presiona la tecla +.',
+          text: 'Hold down the Ctrl key and press the + key.',
           keys: ['Ctrl', '+'],
           trigger: 'key-zoom-in',
-          buttonLabel: 'No me funcionó, continuar',
+          buttonLabel: 'It did not work, keep going',
         },
         {
-          text: 'Ahora presiona Ctrl y 0 para volver al tamaño normal.',
+          text: 'Now press Ctrl and 0 to go back to the normal size.',
           keys: ['Ctrl', '0'],
           trigger: 'key-zoom-reset',
-          buttonLabel: 'No me funcionó, continuar',
+          buttonLabel: 'It did not work, keep going',
         },
       ],
     },
@@ -246,27 +246,27 @@ const DRILL_PLACEMENTS: readonly DrillPlacement[] = [
     mission: {
       kind: 'drill',
       id: 'drill-crop',
-      title: 'Práctica de teclas: recortar',
-      objective: 'Recorta la estrella y pégala en la caja de evidencia.',
+      title: 'Key practice: crop',
+      objective: 'Crop the star and paste it into the evidence box.',
       drill: 'crop',
       sealCode: CROP_DRILL_SEAL_CODE,
       shape: 'star',
-      shapeName: 'la estrella',
+      shapeName: 'the star',
       rewards: PASTE_DRILL_REWARDS,
       steps: [
         {
-          text: 'Presiona las tres teclas Windows + Shift + S al mismo tiempo.',
+          text: 'Press the three keys Windows + Shift + S at the same time.',
           keys: ['Win', 'Shift', 'S'],
           trigger: 'blur',
-          buttonLabel: 'Ya lo hice',
+          buttonLabel: 'I did it',
         },
         {
-          text: 'Con el mouse, selecciona solamente la estrella.',
+          text: 'With the mouse, select only the star.',
           trigger: 'button',
-          buttonLabel: 'Ya la seleccioné',
+          buttonLabel: 'I selected it',
         },
         {
-          text: 'Regresa al juego y presiona Ctrl + V en la caja de abajo.',
+          text: 'Come back to the game and press Ctrl + V in the box below.',
           keys: ['Ctrl', 'V'],
           trigger: 'paste',
         },
@@ -278,27 +278,27 @@ const DRILL_PLACEMENTS: readonly DrillPlacement[] = [
     mission: {
       kind: 'drill',
       id: 'drill-copy',
-      title: 'Práctica de teclas: copiar y pegar',
-      objective: 'Copia la tarjeta del corazón y pégala en la caja de evidencia.',
+      title: 'Key practice: copy and paste',
+      objective: 'Copy the heart card and paste it into the evidence box.',
       drill: 'copy',
       sealCode: COPY_DRILL_SEAL_CODE,
       shape: 'heart',
-      shapeName: 'el corazón',
+      shapeName: 'the heart',
       rewards: PASTE_DRILL_REWARDS,
       steps: [
         {
-          text: 'Haz clic sobre la tarjeta para seleccionarla.',
+          text: 'Click on the card to select it.',
           trigger: 'select-card',
-          buttonLabel: 'Seleccionar por mí',
+          buttonLabel: 'Select it for me',
         },
         {
-          text: 'Presiona Ctrl + C para copiarla.',
+          text: 'Press Ctrl + C to copy it.',
           keys: ['Ctrl', 'C'],
           trigger: 'key-copy',
-          buttonLabel: 'Ya la copié',
+          buttonLabel: 'I copied it',
         },
         {
-          text: 'Presiona Ctrl + V en la caja de abajo para pegarla.',
+          text: 'Press Ctrl + V in the box below to paste it.',
           keys: ['Ctrl', 'V'],
           trigger: 'paste',
         },
@@ -340,48 +340,48 @@ export interface TrainingMission {
 
 export const TRAINING_MISSION: TrainingMission = {
   id: 'training',
-  title: 'Misión de entrenamiento',
-  objective: 'Aprende a recortar la pantalla y a pegar tu evidencia.',
+  title: 'Training mission',
+  objective: 'Learn how to crop the screen and paste your evidence.',
   intro:
-    'Antes de empezar a buscar, practiquemos juntos. Sigue los pasos uno por uno, ' +
-    'sin apuro. Aquí nada está mal.',
+    'Before we start searching, let us practise together. Follow the steps one ' +
+    'by one, take your time. Nothing can go wrong here.',
   aimNote:
-    'Lo importante: el recorte se hace sobre la imagen que ves aquí, en tu propia ' +
-    'pantalla. Al presionar Windows + Shift + S la pantalla se pone gris y tú ' +
-    'dibujas un rectángulo encima de la pelota, aquí mismo.',
+    'The important bit: the crop is taken of the picture you see here, on your own ' +
+    'screen. When you press Windows + Shift + S the screen turns grey and you draw ' +
+    'a rectangle on top of the ball, right here.',
   sealCode: TRAINING_SEAL_CODE,
   shape: 'ball',
-  shapeName: 'la pelota',
-  successMessage: '¡Muy bien! El juego recibió tu recorte.',
+  shapeName: 'the ball',
+  successMessage: 'Well done! The game got your crop.',
   steps: [
     {
-      text: 'Busca la pelota en la imagen de arriba.',
+      text: 'Look for the ball in the picture above.',
       trigger: 'button',
-      buttonLabel: 'Ya la veo',
+      buttonLabel: 'I can see it',
     },
     {
-      text: 'Acércate usando el botón + del zoom, debajo de la imagen.',
+      text: 'Zoom in with the + button under the picture.',
       trigger: 'zoom-in',
-      buttonLabel: 'Ya me acerqué',
+      buttonLabel: 'I zoomed in',
     },
     {
-      text: 'Presiona las tres teclas Windows + Shift + S al mismo tiempo. La pantalla se pondrá gris.',
+      text: 'Press the three keys Windows + Shift + S at the same time. The screen will turn grey.',
       keys: ['Win', 'Shift', 'S'],
       trigger: 'blur',
-      buttonLabel: 'Ya lo hice',
+      buttonLabel: 'I did it',
     },
     {
-      text: 'Con el mouse, dibuja un rectángulo sobre la pelota. Solo la pelota, sin nada más.',
+      text: 'With the mouse, draw a rectangle around the ball. Only the ball, nothing else.',
       trigger: 'button',
-      buttonLabel: 'Ya la seleccioné',
+      buttonLabel: 'I selected it',
     },
     {
-      text: 'Suelta el mouse: el recorte ya quedó guardado y vuelves al juego.',
+      text: 'Let go of the mouse: your crop is saved and you come back to the game.',
       trigger: 'focus',
-      buttonLabel: 'Ya regresé',
+      buttonLabel: 'I am back',
     },
     {
-      text: 'Presiona Ctrl + V aquí abajo, en la caja de evidencia.',
+      text: 'Press Ctrl + V down here, in the evidence box.',
       keys: ['Ctrl', 'V'],
       trigger: 'paste',
     },

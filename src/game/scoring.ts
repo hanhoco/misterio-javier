@@ -21,25 +21,25 @@ export const PRECISION_TIERS = ['none', 'wide', 'close', 'precise'] as const;
 
 export type PrecisionTier = (typeof PRECISION_TIERS)[number];
 
-/** Spanish labels for the teacher panel. */
+/** Labels for the teacher panel. */
 export const PRECISION_TIER_LABELS: Record<PrecisionTier, string> = {
-  none: 'sin recorte',
-  wide: 'recorte amplio',
-  close: 'recorte cercano',
-  precise: 'recorte preciso',
+  none: 'no crop',
+  wide: 'wide crop',
+  close: 'close crop',
+  precise: 'precise crop',
 };
 
 /** The points table from the brief. */
 export const POINTS = {
-  /** Encontrar pista. */
+  /** Clue found. */
   clueFound: 100,
-  /** Realizar recorte. */
+  /** Crop taken. */
   cropTaken: 50,
-  /** Pegar correctamente. */
+  /** Pasted correctly. */
   pastedCorrectly: 50,
-  /** Recorte preciso. */
+  /** Precise crop. */
   preciseCrop: 25,
-  /** Completar misión. */
+  /** Mission completed. */
   missionCompleted: 100,
 } as const;
 

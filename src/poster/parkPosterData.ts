@@ -79,7 +79,7 @@ export interface NormalizedBox {
 export interface ParkTargetDefinition extends NormalizedBox {
   /** Stable machine identifier. English, like every other identifier. */
   id: string;
-  /** User facing name, Spanish, as it reads in the mission line. */
+  /** User facing name, as it reads in the mission line. */
   name: string;
   /** Seal digits: centre, up, right, down, left. */
   digits: SealDigits;
@@ -101,38 +101,38 @@ export interface ParkTargetDefinition extends NormalizedBox {
  */
 const PARK_TARGET_DEFINITIONS: readonly ParkTargetDefinition[] = [
   // x=61  y=10   w=27   h=34   - the red and yellow kite in the top-left sky.
-  { id: 'kite', name: 'la cometa amarilla', x: 0.06581, y: 0.01789, width: 0.02913, height: 0.06082, digits: [0, 0, 1, 2, 3] },
+  { id: 'kite', name: 'the yellow kite', x: 0.06581, y: 0.01789, width: 0.02913, height: 0.06082, digits: [0, 0, 1, 2, 3] },
   // x=160 y=100  w=106  h=122  - the red-roofed tower and the grey slide.
-  { id: 'slide', name: 'el tobogán del parque infantil', x: 0.17260, y: 0.17889, width: 0.11435, height: 0.21824, digits: [0, 1, 3, 2, 1] },
+  { id: 'slide', name: 'the playground slide', x: 0.17260, y: 0.17889, width: 0.11435, height: 0.21824, digits: [0, 1, 3, 2, 1] },
   // x=274 y=132  w=76   h=80   - the swing frame right of the playground.
-  { id: 'swings', name: 'los columpios', x: 0.29558, y: 0.23614, width: 0.08199, height: 0.14311, digits: [0, 2, 1, 3, 2] },
+  { id: 'swings', name: 'the swings', x: 0.29558, y: 0.23614, width: 0.08199, height: 0.14311, digits: [0, 2, 1, 3, 2] },
   // x=138 y=302  w=102  h=86   - the water, west of the bridge.
-  { id: 'pond', name: 'el estanque de los patos', x: 0.14887, y: 0.54025, width: 0.11003, height: 0.15385, digits: [0, 3, 2, 1, 3] },
+  { id: 'pond', name: 'the duck pond', x: 0.14887, y: 0.54025, width: 0.11003, height: 0.15385, digits: [0, 3, 2, 1, 3] },
   // x=246 y=293  w=92   h=51   - the arched wooden footbridge.
-  { id: 'bridge', name: 'el puente de madera', x: 0.26537, y: 0.52415, width: 0.09925, height: 0.09123, digits: [1, 0, 2, 3, 1] },
+  { id: 'bridge', name: 'the wooden bridge', x: 0.26537, y: 0.52415, width: 0.09925, height: 0.09123, digits: [1, 0, 2, 3, 1] },
   // x=415 y=120  w=105  h=124  - trunk and lower canopy of the central oak.
-  { id: 'oak', name: 'el árbol grande del centro', x: 0.44768, y: 0.21467, width: 0.11327, height: 0.22182, digits: [1, 1, 3, 0, 2] },
+  { id: 'oak', name: 'the big oak tree in the middle', x: 0.44768, y: 0.21467, width: 0.11327, height: 0.22182, digits: [1, 1, 3, 0, 2] },
   // x=340 y=248  w=110  h=44   - the red-checked picnic blanket under the oak.
-  { id: 'pinkBlanket', name: 'la manta de picnic rosada', x: 0.36678, y: 0.44365, width: 0.11866, height: 0.07871, digits: [1, 2, 0, 3, 3] },
+  { id: 'pinkBlanket', name: 'the pink picnic blanket', x: 0.36678, y: 0.44365, width: 0.11866, height: 0.07871, digits: [1, 2, 0, 3, 3] },
   // x=32  y=498  w=106  h=46   - the blue-checked blanket, bottom left.
-  { id: 'blueBlanket', name: 'la manta de picnic azul', x: 0.03452, y: 0.89087, width: 0.11435, height: 0.08229, digits: [1, 3, 1, 2, 0] },
+  { id: 'blueBlanket', name: 'the blue picnic blanket', x: 0.03452, y: 0.89087, width: 0.11435, height: 0.08229, digits: [1, 3, 1, 2, 0] },
   // x=618 y=126  w=115  h=86   - the yellow "FIELD FEASTS" truck by the school.
-  { id: 'yellowTruck', name: 'el camión de comida amarillo', x: 0.66667, y: 0.22540, width: 0.12406, height: 0.15385, digits: [2, 0, 3, 1, 2] },
+  { id: 'yellowTruck', name: 'the yellow food truck', x: 0.66667, y: 0.22540, width: 0.12406, height: 0.15385, digits: [2, 0, 3, 1, 2] },
   // x=588 y=456  w=121  h=90   - the white and orange food truck, bottom right.
-  { id: 'whiteTruck', name: 'el camión de comida blanco', x: 0.63430, y: 0.81574, width: 0.13053, height: 0.16100, digits: [2, 1, 2, 0, 3] },
+  { id: 'whiteTruck', name: 'the white food truck', x: 0.63430, y: 0.81574, width: 0.13053, height: 0.16100, digits: [2, 1, 2, 0, 3] },
   // x=841 y=134  w=72   h=36   - the school bus on the road. Ends at x=913,
   // fourteen pixels clear of the crop line, so the crop does not clip it.
-  { id: 'schoolBus', name: 'el bus escolar', x: 0.90723, y: 0.23971, width: 0.07767, height: 0.06440, digits: [2, 2, 3, 3, 0] },
+  { id: 'schoolBus', name: 'the school bus', x: 0.90723, y: 0.23971, width: 0.07767, height: 0.06440, digits: [2, 2, 3, 3, 0] },
   // x=668 y=50   w=245 h=72    - the brick school with the clock tower.
-  { id: 'school', name: 'el edificio de la escuela', x: 0.72060, y: 0.08945, width: 0.26429, height: 0.12880, digits: [2, 3, 0, 2, 1] },
+  { id: 'school', name: 'the school building', x: 0.72060, y: 0.08945, width: 0.26429, height: 0.12880, digits: [2, 3, 0, 2, 1] },
   // x=531 y=305  w=97   h=145  - the red-roofed bandstand with the musicians.
   // Named for the musicians, not the roof: there is no carousel in this
   // illustration, and a child sent to find one would search forever.
-  { id: 'carousel', name: 'el quiosco de los músicos', x: 0.57282, y: 0.54562, width: 0.10464, height: 0.25939, digits: [3, 0, 1, 3, 2] },
+  { id: 'carousel', name: 'the band stand', x: 0.57282, y: 0.54562, width: 0.10464, height: 0.25939, digits: [3, 0, 1, 3, 2] },
   // x=631 y=320  w=81   h=80   - the near soccer goal and its net.
-  { id: 'goal', name: 'el arco de fútbol', x: 0.68069, y: 0.57245, width: 0.08738, height: 0.14311, digits: [3, 1, 0, 1, 3] },
+  { id: 'goal', name: 'the soccer goal', x: 0.68069, y: 0.57245, width: 0.08738, height: 0.14311, digits: [3, 1, 0, 1, 3] },
   // x=760 y=390  w=155  h=75   - the vegetable beds along the right fence.
-  { id: 'garden', name: 'la huerta de canteros', x: 0.81985, y: 0.69767, width: 0.16721, height: 0.13417, digits: [3, 2, 2, 0, 1] },
+  { id: 'garden', name: 'the vegetable garden', x: 0.81985, y: 0.69767, width: 0.16721, height: 0.13417, digits: [3, 2, 2, 0, 1] },
 ];
 
 /** A park target, in poster-native pixels, ready for the decoder and verdict. */

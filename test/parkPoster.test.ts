@@ -398,7 +398,7 @@ describe('seal round-trip against the park poster', () => {
       READY_TO_CROP_SCALE >= FIRST_FULLY_DECODABLE_SCALE,
       `the readiness light turns green at ${READY_TO_CROP_SCALE.toFixed(3)}x but the ` +
         `park poster only decodes fully from ${FIRST_FULLY_DECODABLE_SCALE}x: a child ` +
-        'would be told "¡Listo!" and then fail',
+        'would be told "Ready!" and then fail',
     );
   });
 });
@@ -504,7 +504,7 @@ describe('what a child is told at the zoom the game opens at', () => {
 
   it('lets the child win the moment the light goes green', () => {
     // The other half of the contract. "Never lie" is satisfied by a game that
-    // says "acércate" forever; this is what stops that being the fix.
+    // says "zoom in" forever; this is what stops that being the fix.
     const failures = PARK_TARGETS.filter((target) => {
       const image = poster();
       const crop = cropImage(
@@ -530,7 +530,7 @@ describe('what a child is told at the zoom the game opens at', () => {
     assert.deepEqual(
       failures,
       [],
-      `the light says "¡Listo para recortar!" at ${READY_TO_CROP_SCALE.toFixed(3)}x, ` +
+      `the light says "Ready to crop!" at ${READY_TO_CROP_SCALE.toFixed(3)}x, ` +
         'so every target must be findable there',
     );
   });

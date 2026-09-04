@@ -88,7 +88,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     image.decoding = 'async';
     image.addEventListener('load', () => resolve(image));
     image.addEventListener('error', () =>
-      reject(new Error(`No pude cargar la ilustración: ${url}`)),
+      reject(new Error(`Could not load the illustration: ${url}`)),
     );
     image.src = url;
   });

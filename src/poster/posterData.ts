@@ -41,7 +41,7 @@ export type PosterObjectShape =
 export interface PosterTarget {
   /** Stable machine identifier. */
   id: string;
-  /** User facing name, Spanish. */
+  /** User facing name. */
   name: string;
   /** Bounding box in poster-native pixels. */
   x: number;
@@ -83,14 +83,14 @@ interface PosterObjectDefinition {
  * guarantees, by construction, that no two bounding boxes can overlap.
  */
 const OBJECT_DEFINITIONS: readonly PosterObjectDefinition[] = [
-  { id: 'red-cap',  name: 'la gorra roja', column: 0, row: 0, width: 150, height: 104, offsetX: -150, offsetY: -120, digits: [0, 1, 2, 3, 0] },
-  { id: 'book',     name: 'el libro',      column: 1, row: 0, width: 140, height: 120, offsetX:  130, offsetY:   90, digits: [1, 2, 3, 0, 1] },
-  { id: 'backpack', name: 'la mochila',    column: 2, row: 0, width: 130, height: 160, offsetX: -110, offsetY:  140, digits: [2, 3, 0, 1, 2] },
-  { id: 'cat',      name: 'el gato',       column: 3, row: 0, width: 170, height: 130, offsetX:   90, offsetY: -150, digits: [3, 0, 1, 2, 3] },
-  { id: 'clock',    name: 'el reloj',      column: 0, row: 1, width: 140, height: 140, offsetX:  140, offsetY: -160, digits: [0, 3, 2, 1, 0] },
-  { id: 'key',      name: 'la llave',      column: 1, row: 1, width: 170, height:  96, offsetX: -130, offsetY:  150, digits: [1, 0, 3, 2, 1] },
-  { id: 'ball',     name: 'la pelota',     column: 2, row: 1, width: 130, height: 130, offsetX:  120, offsetY:  120, digits: [2, 1, 0, 3, 2] },
-  { id: 'plant',    name: 'la planta',     column: 3, row: 1, width: 140, height: 170, offsetX: -140, offsetY: -140, digits: [3, 2, 1, 0, 3] },
+  { id: 'red-cap',  name: 'the red cap',  column: 0, row: 0, width: 150, height: 104, offsetX: -150, offsetY: -120, digits: [0, 1, 2, 3, 0] },
+  { id: 'book',     name: 'the book',     column: 1, row: 0, width: 140, height: 120, offsetX:  130, offsetY:   90, digits: [1, 2, 3, 0, 1] },
+  { id: 'backpack', name: 'the backpack', column: 2, row: 0, width: 130, height: 160, offsetX: -110, offsetY:  140, digits: [2, 3, 0, 1, 2] },
+  { id: 'cat',      name: 'the cat',      column: 3, row: 0, width: 170, height: 130, offsetX:   90, offsetY: -150, digits: [3, 0, 1, 2, 3] },
+  { id: 'clock',    name: 'the clock',    column: 0, row: 1, width: 140, height: 140, offsetX:  140, offsetY: -160, digits: [0, 3, 2, 1, 0] },
+  { id: 'key',      name: 'the key',      column: 1, row: 1, width: 170, height:  96, offsetX: -130, offsetY:  150, digits: [1, 0, 3, 2, 1] },
+  { id: 'ball',     name: 'the ball',     column: 2, row: 1, width: 130, height: 130, offsetX:  120, offsetY:  120, digits: [2, 1, 0, 3, 2] },
+  { id: 'plant',    name: 'the plant',    column: 3, row: 1, width: 140, height: 170, offsetX: -140, offsetY: -140, digits: [3, 2, 1, 0, 3] },
 ];
 
 function toPosterObject(definition: PosterObjectDefinition): PosterObject {

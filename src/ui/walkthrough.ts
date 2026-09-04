@@ -49,7 +49,7 @@ export interface WalkthroughStep {
    * an overlay they cannot dismiss.
    */
   target: string | null;
-  /** One instruction, 10-15 words, Spanish, for a 7-9 year old. */
+  /** One instruction, 10-15 words, for a 7-9 year old. */
   text: string;
   /** How this step ends. */
   trigger: WalkthroughTrigger;
@@ -86,17 +86,17 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
   {
     id: 'poster',
     target: '.training__poster',
-    text: 'Este es el parque. Aquí vas a buscar cada pista escondida.',
+    text: 'This is the park. Here is where you look for each hidden clue.',
     trigger: 'next',
-    buttonLabel: 'Siguiente',
+    buttonLabel: 'Next',
     scrim: true,
   },
   {
     id: 'steps',
     target: '.training__instructions',
-    text: 'Aquí aparecen los pasos, uno por uno. Sigue siempre el paso iluminado.',
+    text: 'The steps show up here, one by one. Always follow the lit-up step.',
     trigger: 'next',
-    buttonLabel: 'Siguiente',
+    buttonLabel: 'Next',
     scrim: true,
   },
   {
@@ -104,7 +104,7 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
     // Earned, not clicked past: no `buttonLabel`, so the only way out of this
     // step is to press the + button that the spotlight is sitting on.
     target: '.poster-viewer__controls',
-    text: 'Toca el botón más para acercarte. Los sellos son muy pequeños.',
+    text: 'Tap the plus button to zoom in. The seals are very small.',
     trigger: 'zoom-in',
     scrim: true,
   },
@@ -122,7 +122,7 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
      * conceptual leap, so it gets the diagram and it gets said plainly.
      */
     target: null,
-    text: 'La foto se toma del parque como se ve aquí, en tu ventana.',
+    text: 'The photo is of the park as it looks here, in your window.',
     trigger: 'paste',
     keys: ['Win', 'Shift', 'S'],
     scrim: false,
@@ -131,20 +131,20 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
   {
     id: 'evidence',
     target: '.evidence',
-    text: 'Tu recorte llegó aquí. Esta es tu caja de evidencia.',
+    text: 'Your crop landed here. This is your evidence box.',
     trigger: 'auto',
     // Long enough to read twice. The step also ends on a click, so a fast child
     // is never made to wait and a slow one is never rushed off the sentence.
     autoAdvanceMs: 4000,
-    buttonLabel: 'Siguiente',
+    buttonLabel: 'Next',
     scrim: true,
   },
   {
     id: 'rail',
     target: '.rail',
-    text: 'Cada pista que encuentres destapa una pieza del rompecabezas.',
+    text: 'Every clue you find uncovers a piece of the jigsaw.',
     trigger: 'next',
-    buttonLabel: '¡Empezar!',
+    buttonLabel: 'Let us start!',
     scrim: true,
   },
 ];
@@ -193,7 +193,7 @@ export interface WalkthroughMachine {
   total(): number;
   /** Reports something that happened. Ignored when it does not fit the step. */
   fire(trigger: WalkthroughTrigger): void;
-  /** The quiet "Saltar guía" escape hatch. */
+  /** The quiet "Skip the guide" escape hatch. */
   skip(): void;
   isDone(): boolean;
 }

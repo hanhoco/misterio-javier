@@ -26,7 +26,7 @@ export type PosterSourceId = 'park' | 'procedural';
 
 export interface LoadedPoster {
   id: PosterSourceId;
-  /** User facing name, Spanish. */
+  /** User facing name. */
   label: string;
   canvas: HTMLCanvasElement;
   targets: readonly PosterTarget[];
@@ -35,8 +35,8 @@ export interface LoadedPoster {
 
 /** Order matters: the first entry is the default the app opens on. */
 export const POSTER_SOURCES: ReadonlyArray<{ id: PosterSourceId; label: string }> = [
-  { id: 'park', label: 'Parque' },
-  { id: 'procedural', label: 'Procedural (respaldo)' },
+  { id: 'park', label: 'Park' },
+  { id: 'procedural', label: 'Procedural (fallback)' },
 ];
 
 /** The URL of the park illustration, resolved by the bundler. */
@@ -46,7 +46,7 @@ export async function loadPoster(id: PosterSourceId): Promise<LoadedPoster> {
   if (id === 'procedural') {
     return {
       id,
-      label: 'Procedural (respaldo)',
+      label: 'Procedural (fallback)',
       canvas: renderPoster(),
       targets: POSTER_OBJECTS,
       findBySealCode: findObjectBySealCode,
@@ -56,7 +56,7 @@ export async function loadPoster(id: PosterSourceId): Promise<LoadedPoster> {
   const { canvas } = await renderImagePoster({ sourceUrl: PARK_SOURCE_URL });
   return {
     id: 'park',
-    label: 'Parque',
+    label: 'Park',
     canvas,
     targets: PARK_TARGETS,
     findBySealCode: findParkTargetBySealCode,
