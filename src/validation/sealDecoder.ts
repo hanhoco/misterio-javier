@@ -81,7 +81,7 @@ const MIN_BLOB_FILL_RATIO = 0.5;
 
 /**
  * Arm search window, expressed in multiples of the candidate centre's radius.
- * The seal's own arm-distance-to-dot-radius ratio is 15/7 ~= 2.14, which sits
+ * The seal's own arm-distance-to-dot-radius ratio is 12/5 = 2.4, which sits
  * comfortably inside [1.2, 3.5].
  */
 const ARM_SEARCH_MIN_RADII = 1.2;
@@ -93,8 +93,15 @@ const ARM_DISTANCE_TOLERANCE = 0.25;
 /** ...and 90 degrees apart within this many degrees. */
 const ARM_ANGLE_TOLERANCE_DEGREES = 25;
 
-/** Below this measured core radius the code cannot be trusted. */
-const MIN_READABLE_DOT_RADIUS_PX = 3;
+/**
+ * Below this measured core radius the code cannot be trusted.
+ *
+ * Exported because it is one half of the readable floor: divided by
+ * `SEAL_DOT_RADIUS` it gives the viewer zoom below which no crop can possibly
+ * decode, which is what the zoom readiness indicator and the verdict path are
+ * derived from. See `src/viewer/zoomReadiness.ts`. Never copy the number.
+ */
+export const MIN_READABLE_DOT_RADIUS_PX = 3;
 
 /* -------------------------------------------------------------------------- */
 

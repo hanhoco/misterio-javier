@@ -29,23 +29,32 @@ export const SEAL_DOT_COUNT = 5;
 /**
  * Distance from the centre dot to each arm dot, in poster-native pixels.
  *
- * Halved from 15. The seals are machine-readable precisely because they are
- * unlike anything in the illustration - pure hue, maximum saturation - and at
- * the old size seventy-five of them read as neon confetti thrown over the
- * user's artwork. Shrinking the geometry keeps every property the decoder
- * relies on (the ratio to the dot radius, which is what `ARM_SEARCH_*_RADII`
- * bounds, is 10/4 = 2.5 against the old 15/7 = 2.14) while cutting the ink.
+ * Down from 15, so seventy-five seals stop reading as neon confetti thrown over
+ * the user's artwork, but no lower than the moat allows. The centre core and an
+ * arm core sit `SEAL_ARM_DISTANCE - 2 * SEAL_DOT_RADIUS` apart, and that gap
+ * MUST stay at 2px or more at poster-native scale: at one pixel a resample to
+ * 0.85x takes it sub-pixel, the two cores blend into one blob, and the
+ * plus-shape is thrown away. Measured, red-cap failed at exactly that scale.
  *
- * 10 rather than 9 because of the moat. The centre core and an arm core sit
- * `SEAL_ARM_DISTANCE - 2 * SEAL_DOT_RADIUS` apart, and at 9 that is a single
- * poster pixel: resample to 0.85x and the gap goes sub-pixel, the two cores
- * blend into one blob, and the plus-shape is thrown away. Measured, red-cap
- * failed at exactly that scale. At 10 the moat is two pixels and survives.
+ * 12 against a dot radius of 5 gives exactly that two-pixel moat. It also keeps
+ * the arm-distance-to-dot-radius ratio the decoder brackets with
+ * `ARM_SEARCH_*_RADII` at 12/5 = 2.4, comfortably inside [1.2, 3.5].
+ *
+ * Changing either this or `SEAL_DOT_RADIUS` moves the readable floor that the
+ * zoom readiness indicator is derived from. See `src/viewer/zoomReadiness.ts`.
  */
-export const SEAL_ARM_DISTANCE = 10;
+export const SEAL_ARM_DISTANCE = 12;
 
-/** Radius of the coloured core of every dot, in poster-native pixels. */
-export const SEAL_DOT_RADIUS = 4;
+/**
+ * Radius of the coloured core of every dot, in poster-native pixels.
+ *
+ * This number, divided into the decoder's `MIN_READABLE_DOT_RADIUS_PX`, IS the
+ * zoom at which a crop first becomes readable: at 4 the floor was 3/4 = 0.75x,
+ * which is three presses of "+" above the zoom the viewer opens the park poster
+ * at on a school laptop - a game a child cannot win. At 5 the floor is
+ * 3/5 = 0.60x, one press away. Anything smaller reopens that hole.
+ */
+export const SEAL_DOT_RADIUS = 5;
 
 /**
  * Width of the ring drawn around every dot. This is not decoration: it keeps
@@ -80,7 +89,7 @@ export const SEAL_RING_COLOR = '#9AA0A6';
 /** Outer radius of a dot including its protective ring. */
 export const SEAL_DOT_OUTER_RADIUS = SEAL_DOT_RADIUS + SEAL_RING_WIDTH;
 
-/** Total footprint of a seal (29x29 at poster-native scale). */
+/** Total footprint of a seal (37x37 at poster-native scale). */
 export const SEAL_FOOTPRINT =
   2 * (SEAL_ARM_DISTANCE + SEAL_DOT_OUTER_RADIUS);
 

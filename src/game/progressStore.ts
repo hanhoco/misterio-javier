@@ -122,14 +122,15 @@ export function parseProgress(raw: unknown): GameProgress | null {
     version: PROGRESS_VERSION,
     name: raw.name,
     classCode: raw.classCode,
-    trainingCompleted: raw.trainingCompleted === true,
     /*
-     * Anything that is not literally `true` means "not seen", so a missing
-     * field (an older save), a string, a number or a null all degrade the same
-     * way: the child is shown the guide again. Showing a guide twice costs a
-     * minute; withholding it from a child who never saw it costs the lesson.
+     * `trainingCompleted` and `walkthroughSeen` used to be read here. They are
+     * gone from `GameProgress` because the tutorial no longer sits on the
+     * startup path, and they are deliberately NOT read back: a profile saved by
+     * the older build still carries them, and the correct thing to do with a
+     * field the game no longer has an opinion about is to drop it on the floor
+     * rather than fail the profile that holds it. Every other field of such a
+     * save - the missions, the score, the name - loads exactly as before.
      */
-    walkthroughSeen: raw.walkthroughSeen === true,
     soundEnabled: raw.soundEnabled === true,
     currentMissionIndex,
     missions,

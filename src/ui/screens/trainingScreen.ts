@@ -1,5 +1,11 @@
 /**
- * Stage 2: the guided tutorial, before mission 1.
+ * The guided tutorial.
+ *
+ * It no longer sits between the profile screen and mission 1: a teacher watched
+ * a class meet it there and asked for it off the startup path. It is reached
+ * from the "Entrenamiento" button, on purpose, and it is still where the
+ * Windows + Shift + S explanation lives - so it is kept whole rather than
+ * deleted, ready to be put back in front of a class the moment it is wanted.
  *
  * Six steps, one at a time, on a picture with one big obvious object carrying
  * its own dedicated seal.
@@ -37,8 +43,6 @@ export interface TrainingScreenOptions {
    * what the child learns is the layout of the app they are actually holding.
    */
   runWalkthrough?: boolean;
-  /** The tour ended, finished or skipped. Only fires when it was run. */
-  onWalkthroughEnd?: () => void;
 }
 
 export function createTrainingScreen(options: TrainingScreenOptions): Screen {
@@ -82,6 +86,7 @@ export function createTrainingScreen(options: TrainingScreenOptions): Screen {
   const stage = createPosterStage({
     poster: practice.canvas,
     stageClass: 'poster-viewer__stage--practice',
+    showReadiness: true,
     onZoomIn: () => {
       steps.fire('zoom-in');
       // The tour's zoom step is earned, not clicked past, so it listens to the
@@ -161,7 +166,6 @@ export function createTrainingScreen(options: TrainingScreenOptions): Screen {
           host: document.body,
           onEnd() {
             walkthrough = null;
-            options.onWalkthroughEnd?.();
           },
         });
       }

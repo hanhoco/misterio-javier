@@ -12,25 +12,35 @@
  * third thing again: the park poster before any seal is stamped on it.
  */
 
+import {
+  BUTTON_ZOOM_STEP,
+  WHEEL_ZOOM_STEP,
+  clampScale,
+  computeFitScale,
+} from './viewerGeometry';
+import { effectiveCropScale } from './zoomReadiness';
+
+/**
+ * Everything a caller needs to say whether a crop taken right now can be read.
+ *
+ * `scale` is CSS pixels per poster pixel - what the zoom label shows and what
+ * the child controls. `effectiveScale` is what the child's SCREENSHOT will
+ * contain, because `Win + Shift + S` photographs device pixels. On a Retina
+ * screen those differ by a factor of two, which is the whole reason the game
+ * worked for the teacher and failed for the class.
+ */
+export interface ViewerScaleState {
+  scale: number;
+  devicePixelRatio: number;
+  effectiveScale: number;
+}
+
 /** Something drawn on top of the poster in poster coordinates, per frame. */
 export type OverlayRenderer = (
   ctx: CanvasRenderingContext2D,
   view: { scale: number; offsetX: number; offsetY: number },
 ) => void;
 
-const MIN_SCALE = 0.15;
-const MAX_SCALE = 8;
-const WHEEL_ZOOM_STEP = 1.0015;
-
-/**
- * How much one press of the + button changes the scale.
- *
- * 1.7, not the 1.35 this started at. From a whole-poster fit around 0.4x, a
- * 1.35 step needs five presses to reach 1:1 and a child gives up somewhere
- * around three; 1.7 gets there in two. The wheel keeps its own much finer step
- * because a wheel produces dozens of events per gesture.
- */
-const BUTTON_ZOOM_STEP = 1.7;
 
 export class PosterViewer {
   private readonly canvas: HTMLCanvasElement;
@@ -50,6 +60,36 @@ export class PosterViewer {
   private lastHeight = 0;
   /** False until a fit ran against a container that actually had a size. */
   private hasFitted = false;
+  /**
+   * Told whenever the scale changes, so the readiness indicator can be live.
+   *
+   * A listener rather than a return value from `zoomIn`, because the scale also
+   * moves on the wheel, on "Ver todo", on a poster swap and on the first resize
+   * that gives the container a real size - and a child who reaches a readable
+   * zoom by spinning the wheel deserves the same green light as one who
+   * pressed the button.
+   */
+  private scaleListener: ((state: ViewerScaleState) => void) | null = null;
+  /** What the listener was last told, so pans do not spam it. */
+  private notifiedScale = Number.NaN;
+  private notifiedRatio = Number.NaN;
+  /**
+   * Watches `devicePixelRatio` for changes.
+   *
+   * It is not a constant. Drag the window from a Retina display to an external
+   * monitor, or change Windows display scaling from 100% to 125%, and it moves
+   * underneath a page that is already open - taking the readiness light's
+   * answer with it. Reading it once at startup would leave a child looking at
+   * a green light on a screen that can no longer deliver.
+   */
+  private ratioQuery: MediaQueryList | null = null;
+  private readonly onRatioChange = () => {
+    this.watchDevicePixelRatio();
+    // The backing store is sized in device pixels, so a ratio change is a
+    // resize in all but name.
+    this.resize();
+    this.render();
+  };
 
   constructor(container: HTMLElement, poster: HTMLCanvasElement) {
     this.poster = poster;
@@ -62,6 +102,7 @@ export class PosterViewer {
     this.ctx = ctx;
 
     this.attachEvents();
+    this.watchDevicePixelRatio();
     this.resize();
     this.fitToView();
 
@@ -84,6 +125,64 @@ export class PosterViewer {
   /** Current poster-pixels-to-CSS-pixels factor. */
   getScale(): number {
     return this.scale;
+  }
+
+  /** How many device pixels one CSS pixel currently is. Read live, never cached. */
+  getDevicePixelRatio(): number {
+    const ratio = typeof window === 'undefined' ? 1 : window.devicePixelRatio;
+    return Number.isFinite(ratio) && ratio > 0 ? ratio : 1;
+  }
+
+  /** The scale the child's screenshot will actually carry. */
+  getEffectiveScale(): number {
+    return effectiveCropScale(this.scale, this.getDevicePixelRatio());
+  }
+
+  /** Scale, device pixel ratio and their product, as one snapshot. */
+  getScaleState(): ViewerScaleState {
+    const devicePixelRatio = this.getDevicePixelRatio();
+    return {
+      scale: this.scale,
+      devicePixelRatio,
+      effectiveScale: effectiveCropScale(this.scale, devicePixelRatio),
+    };
+  }
+
+  /**
+   * Registers the one listener that follows the scale, and fires it at once
+   * with the current value so the caller never has to seed its own UI.
+   */
+  onScaleChange(listener: (state: ViewerScaleState) => void): void {
+    this.scaleListener = listener;
+    this.notifiedScale = Number.NaN;
+    this.notifiedRatio = Number.NaN;
+    this.notifyScale();
+  }
+
+  private notifyScale(): void {
+    const state = this.getScaleState();
+    if (state.scale === this.notifiedScale && state.devicePixelRatio === this.notifiedRatio) {
+      return;
+    }
+    this.notifiedScale = state.scale;
+    this.notifiedRatio = state.devicePixelRatio;
+    this.scaleListener?.(state);
+  }
+
+  /**
+   * Re-arms the device-pixel-ratio watch.
+   *
+   * A `(resolution: Xdppx)` query only ever reports leaving the ratio it was
+   * built for, so it has to be rebuilt around the new ratio every time it
+   * fires. `matchMedia` is absent in some embedded webviews; a viewer that
+   * cannot watch the ratio still reads it live on every render, so it lags a
+   * monitor change by one interaction rather than being wrong forever.
+   */
+  private watchDevicePixelRatio(): void {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    this.ratioQuery?.removeEventListener('change', this.onRatioChange);
+    this.ratioQuery = window.matchMedia(`(resolution: ${this.getDevicePixelRatio()}dppx)`);
+    this.ratioQuery.addEventListener('change', this.onRatioChange);
   }
 
   /** Native width of the poster currently on screen. */
@@ -146,11 +245,9 @@ export class PosterViewer {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
-    const fitScale = Math.min(
-      rect.width / this.posterWidth,
-      rect.height / this.posterHeight,
+    this.scale = clampScale(
+      computeFitScale(rect.width, rect.height, this.posterWidth, this.posterHeight),
     );
-    this.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, fitScale));
     this.offsetX = (rect.width - this.posterWidth * this.scale) / 2;
     this.offsetY = (rect.height - this.posterHeight * this.scale) / 2;
     this.hasFitted = true;
@@ -160,8 +257,7 @@ export class PosterViewer {
   /** The scale `fitToView` would choose right now, without changing anything. */
   fitScale(): number {
     const rect = this.canvas.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return 0;
-    return Math.min(rect.width / this.posterWidth, rect.height / this.posterHeight);
+    return computeFitScale(rect.width, rect.height, this.posterWidth, this.posterHeight);
   }
 
   zoomBy(factor: number, anchorX?: number, anchorY?: number): void {
@@ -169,7 +265,7 @@ export class PosterViewer {
     const ax = anchorX ?? rect.width / 2;
     const ay = anchorY ?? rect.height / 2;
 
-    const nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, this.scale * factor));
+    const nextScale = clampScale(this.scale * factor);
     if (nextScale === this.scale) return;
 
     // Keep the poster point under the anchor pinned while the scale changes.
@@ -299,5 +395,9 @@ export class PosterViewer {
       });
       this.ctx.restore();
     }
+
+    // Every path that moves the scale ends in a render, so this is the one
+    // place the readiness indicator has to be told from.
+    this.notifyScale();
   }
 }

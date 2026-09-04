@@ -40,7 +40,7 @@ function playedProgress(): GameProgress {
   progress = recordAttempt(progress, MISSIONS[0].id, { success: false });
   progress = recordAttempt(progress, MISSIONS[0].id, { success: true, precision: 'precise' });
   progress = recordAttempt(progress, MISSIONS[1].id, { success: true, precision: 'close' });
-  return { ...progress, trainingCompleted: true, soundEnabled: true };
+  return { ...progress, soundEnabled: true };
 }
 
 describe('progress round trip', () => {

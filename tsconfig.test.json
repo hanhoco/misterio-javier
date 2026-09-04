@@ -22,6 +22,8 @@
     "src/poster/imagePoster.ts",
     "src/poster/practicePoster.ts",
     "src/validation",
+    "src/viewer/viewerGeometry.ts",
+    "src/viewer/zoomReadiness.ts",
     "src/game/scoring.ts",
     "src/game/missions.ts",
     "src/game/gameState.ts",

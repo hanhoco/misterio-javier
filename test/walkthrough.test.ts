@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { createProgress, markWalkthroughSeen } from '../src/game/gameState';
+import { createProgress, recordAttempt } from '../src/game/gameState';
+import { MISSIONS } from '../src/game/missions';
 import {
   createMemoryStorage,
   loadProgress,
@@ -247,41 +248,70 @@ describe('walkthrough machine', () => {
   });
 });
 
-describe('walkthroughSeen', () => {
-  it('starts false, so the very first run is forced', () => {
-    assert.equal(createProgress('Ana', '3B').walkthroughSeen, false);
+describe('the tutorial is off the startup path', () => {
+  /*
+   * A teacher tested the game with a class and asked for the practice section
+   * taken off the start. These tests are what stops it creeping back: not one
+   * of them checks a screen, they all check that there is no longer any stored
+   * state a startup path could branch on.
+   */
+
+  it('gives a fresh profile no flag that could force the tutorial', () => {
+    const fresh = createProgress('Ana', '3B') as unknown as Record<string, unknown>;
+
+    assert.equal(
+      'trainingCompleted' in fresh,
+      false,
+      'a first-run training flag is back; it is what put the tutorial before mission 1',
+    );
+    assert.equal(
+      'walkthroughSeen' in fresh,
+      false,
+      'a first-run walkthrough flag is back; it is what put the tour before mission 1',
+    );
   });
 
-  it('round-trips through storage', () => {
+  it('starts a fresh profile on mission 1, with nothing found yet', () => {
+    const fresh = createProgress('Ana', '3B');
+
+    assert.equal(fresh.currentMissionIndex, 0);
+    assert.equal(MISSIONS[0].kind, 'story', 'mission 1 is the first thing a child now meets');
+    assert.deepEqual(fresh.missions, {});
+  });
+
+  it('loads a profile saved by the older build, and ignores its dead flags', () => {
+    // Exactly the shape the shipped build wrote: real progress, plus the two
+    // flags this build no longer has an opinion about.
     const storage = createMemoryStorage();
-    const progress = markWalkthroughSeen(createProgress('Ana', '3B'));
-
-    assert.equal(progress.walkthroughSeen, true);
-    assert.equal(saveProgress(progress, storage), true);
-    assert.equal(loadProgress('Ana', '3B', storage).walkthroughSeen, true);
-  });
-
-  it('degrades to "not seen" for anything that is not literally true', () => {
-    const base = createProgress('Ana', '3B');
-    for (const corrupt of [undefined, null, 0, 1, '', 'true', 'sí', {}, []]) {
-      const parsed = parseProgress({ ...base, walkthroughSeen: corrupt });
-      assert.ok(parsed, `walkthroughSeen=${JSON.stringify(corrupt)} killed the whole profile`);
-      assert.equal(
-        parsed.walkthroughSeen,
-        false,
-        `walkthroughSeen=${JSON.stringify(corrupt)} was trusted`,
-      );
-    }
-  });
-
-  it('does not lose the rest of a profile written before the flag existed', () => {
-    const storage = createMemoryStorage();
-    const older = { ...createProgress('Ana', '3B'), trainingCompleted: true };
-    delete (older as { walkthroughSeen?: boolean }).walkthroughSeen;
+    let played = createProgress('Ana', '3B');
+    played = recordAttempt(played, MISSIONS[0].id, { success: true, precision: 'precise' });
+    const older = { ...played, trainingCompleted: true, walkthroughSeen: true };
     saveProgress(older as never, storage);
 
-    const loaded = loadProgress('Ana', '3B', storage);
-    assert.equal(loaded.trainingCompleted, true, 'the old profile was thrown away');
-    assert.equal(loaded.walkthroughSeen, false, 'an old profile has not seen the guide');
+    const loaded = loadProgress('Ana', '3B', storage) as unknown as Record<string, unknown>;
+
+    assert.equal(loaded.name, 'Ana', 'the old profile was thrown away');
+    assert.deepEqual(
+      (loaded.missions as Record<string, unknown>)[MISSIONS[0].id],
+      { found: true, attempts: 1, precision: 'precise' },
+      'the afternoon a child already played must survive the flag removal',
+    );
+    assert.equal('trainingCompleted' in loaded, false, 'a dead flag was read back in');
+    assert.equal('walkthroughSeen' in loaded, false, 'a dead flag was read back in');
+  });
+
+  it('still degrades a genuinely corrupt profile rather than half-loading it', () => {
+    const base = createProgress('Ana', '3B');
+
+    // A dead flag holding rubbish is not a reason to lose the profile...
+    for (const corrupt of [undefined, null, 0, 1, '', 'true', 'sí', {}, []]) {
+      const parsed = parseProgress({ ...base, walkthroughSeen: corrupt, trainingCompleted: corrupt });
+      assert.ok(parsed, `a dead flag holding ${JSON.stringify(corrupt)} killed the whole profile`);
+    }
+
+    // ...but a broken field the game does rely on still is.
+    assert.equal(parseProgress({ ...base, missions: 'nope' }), null);
+    assert.equal(parseProgress({ ...base, version: 99 }), null);
+    assert.equal(parseProgress(null), null);
   });
 });

@@ -17,9 +17,10 @@ import { scoreMission, type PrecisionTier } from '../../game/scoring';
 import type { LoadedPoster } from '../../poster/posterSource';
 import { decodeSealWithDiagnostics } from '../../validation/sealDecoder';
 import { buildVerdict, type Verdict, type VerdictKind } from '../../validation/verdict';
+import { isDevToolsRequested } from '../devMode';
 import { button, element } from '../dom';
 import { createEvidenceBox, type FeedbackTone } from '../evidenceBox';
-import { createPosterStage } from '../posterStage';
+import { createPosterStage, type PosterStage } from '../posterStage';
 import type { Screen, ScreenContext } from './context';
 
 /** Child-facing copy per verdict, warm on every branch. */
@@ -42,7 +43,10 @@ const FEEDBACK: Record<VerdictKind, { message: string; tone: FeedbackTone }> = {
     message: '¡Casi! No vi la pista en tu recorte. Mira otra vez con calma.',
     tone: 'warning',
   },
-  TOO_SMALL: { message: 'Intenta acercarte un poquito más con el zoom.', tone: 'warning' },
+  TOO_SMALL: {
+    message: 'Intenta acercarte un poquito más con el zoom y recorta otra vez.',
+    tone: 'warning',
+  },
 };
 
 /** How the verdict's grading maps onto the tier stored and scored. */
@@ -81,7 +85,7 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
   root.appendChild(brief);
 
   /* Poster ---------------------------------------------------------------- */
-  const stage = createPosterStage({ poster: poster.canvas });
+  const stage = createPosterStage({ poster: poster.canvas, showReadiness: true });
   root.appendChild(stage.root);
 
   /* Evidence -------------------------------------------------------------- */
@@ -102,12 +106,24 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
       evidence.showPreview(pasted);
 
       const report = decodeSealWithDiagnostics(pasted.image);
+      /*
+       * The EFFECTIVE scale goes in - CSS zoom times device pixel ratio - so a
+       * crop taken below the readable floor is answered with "acércate", never
+       * with "esa no es la pista". A child who cannot possibly have produced a
+       * readable crop has not found the wrong object; they have not been given
+       * a fair chance to find the right one.
+       *
+       * It has to be the effective scale and not the zoom label, or the game
+       * goes back to being right on a Retina screen and wrong on the school
+       * laptops that twenty-eight children are actually sitting at.
+       */
       const verdict = buildVerdict(
         target,
         report.result,
         pasted.width,
         pasted.height,
         poster.findBySealCode,
+        stage.viewer.getEffectiveScale(),
       );
 
       const copy = FEEDBACK[verdict.kind];
@@ -155,10 +171,44 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
       // The stage only has a size once the screen is in the document, and a fit
       // measured before that is a fit against nothing.
       stage.fit();
+      exposeDiagnostics(stage, poster);
     },
     destroy() {
       evidence.destroy();
+      if (isDevToolsRequested()) delete window.__missionProbe;
     },
+  };
+}
+
+/**
+ * What a mission screen looks like from the outside, under `?dev=1`.
+ *
+ * The classroom failure could not be reproduced by reading the code: it needed
+ * the actual device pixels a child's screenshot would contain, at the actual
+ * zoom their laptop opened at. This is the handle that makes that measurable
+ * from outside the browser - the viewer's transform, so a target's on-screen
+ * box can be computed, and the target list to compute it for.
+ *
+ * Behind the same `?dev=1` as the marking tool, so a class never sees it.
+ */
+declare global {
+  interface Window {
+    __missionProbe?: {
+      viewer: PosterStage['viewer'];
+      targets: LoadedPoster['targets'];
+      scaleState: () => ReturnType<PosterStage['viewer']['getScaleState']>;
+      readiness: () => ReturnType<PosterStage['readiness']>;
+    };
+  }
+}
+
+function exposeDiagnostics(stage: PosterStage, poster: LoadedPoster): void {
+  if (!isDevToolsRequested()) return;
+  window.__missionProbe = {
+    viewer: stage.viewer,
+    targets: poster.targets,
+    scaleState: () => stage.viewer.getScaleState(),
+    readiness: () => stage.readiness(),
   };
 }
 

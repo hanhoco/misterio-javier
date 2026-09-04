@@ -39,17 +39,18 @@ export interface GameProgress {
   name: string;
   /** The class code the teacher handed out. */
   classCode: string;
-  trainingCompleted: boolean;
-  /**
-   * Whether the blocking walkthrough has been seen through to its end (or
-   * deliberately skipped) at least once.
+  /*
+   * There is deliberately NO `trainingCompleted` and no `walkthroughSeen` here.
    *
-   * Separate from `trainingCompleted` on purpose: the training mission teaches
-   * the gesture and the walkthrough teaches where things are, and a child can
-   * have finished one without the other. It is also what makes the first run
-   * forced and every later run opt-in from the "Entrenamiento" button.
+   * Both existed to force the tutorial and the guided tour on a first run, and
+   * a teacher who watched a class meet them asked for that off the startup
+   * path: "¡Empezar la misión!" now goes straight to mission 1. Both screens
+   * are still reachable from the "Entrenamiento" button, on purpose, every
+   * time - which needs nothing remembered about them.
+   *
+   * Reintroducing a flag here is how the tutorial comes back unasked. An old
+   * profile that still carries one loads fine; `parseProgress` ignores it.
    */
-  walkthroughSeen: boolean;
   soundEnabled: boolean;
   /** Index into `MISSIONS` of the mission on screen. */
   currentMissionIndex: number;
@@ -68,8 +69,6 @@ export function createProgress(name: string, classCode: string): GameProgress {
     version: PROGRESS_VERSION,
     name,
     classCode,
-    trainingCompleted: false,
-    walkthroughSeen: false,
     /** Sound is off until the child turns it on. Classrooms are shared rooms. */
     soundEnabled: false,
     currentMissionIndex: 0,
@@ -135,14 +134,6 @@ export function recordAttempt(
       : progress.currentMissionIndex,
     missions: { ...progress.missions, [missionId]: next },
   };
-}
-
-export function markTrainingCompleted(progress: GameProgress): GameProgress {
-  return { ...progress, trainingCompleted: true };
-}
-
-export function markWalkthroughSeen(progress: GameProgress): GameProgress {
-  return { ...progress, walkthroughSeen: true };
 }
 
 export function setSoundEnabled(progress: GameProgress, soundEnabled: boolean): GameProgress {

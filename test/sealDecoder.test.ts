@@ -9,17 +9,20 @@ import { rasterizeEmptyScene, rasterizeSeals, rasterizeSingleSeal } from './seal
 
 /**
  * The decoder needs a dot radius of at least `MIN_READABLE_DOT_RADIUS_PX` (3),
- * and `SEAL_DOT_RADIUS` is 4, so a seal stops resolving below 3/4 = 0.75x.
- * 0.8x is the first tested scale that clears that floor with room for the
+ * and `SEAL_DOT_RADIUS` is 5, so a seal stops resolving below 3/5 = 0.60x.
+ * 0.65x is the first tested scale that clears that floor with room for the
  * antialiased rim the saturation cut eats.
  *
- * This floor is deliberate. Seals were halved so they stop defacing the
- * illustration, and the higher floor is the point: it forces the child to zoom
- * in before a crop can be read, which is the skill the exercise teaches. Below
- * it the decoder must say `too-small` ("acércate un poco más"), never guess -
- * `refuses to guess below the readable floor` is the test that guards that.
+ * That floor used to be 0.75x, because the dot radius used to be 4 - and the
+ * park poster opens at 0.26x on a school laptop, three presses of "+" away.
+ * The exercise was unwinnable. `zoomReadiness.ts` now derives the floor from
+ * these same two constants and the game says out loud when a crop can be taken,
+ * rather than leaving a seven year old to discover it.
+ *
+ * Below the floor the decoder must say `too-small` ("acércate un poco más"),
+ * never guess - `refuses to guess below the readable floor` guards that.
  */
-const ROUND_TRIP_SCALES = [0.8, 1, 2, 3];
+const ROUND_TRIP_SCALES = [0.65, 0.8, 1, 2, 3];
 
 describe('seal code encoding', () => {
   it('round-trips every code through its digits', () => {
@@ -58,7 +61,7 @@ describe('sealDecoder', () => {
   }
 
   it('refuses to guess below the readable floor', () => {
-    // 0.5x puts the dot radius at 2px, under MIN_READABLE_DOT_RADIUS_PX. The
+    // 0.5x puts the dot radius at 2.5px, under MIN_READABLE_DOT_RADIUS_PX. The
     // decoder must ask the child to zoom in rather than risk a wrong code: a
     // false "that is not the clue" is recoverable, a false accept is not.
     for (const object of POSTER_OBJECTS) {
@@ -87,10 +90,10 @@ describe('sealDecoder', () => {
   });
 
   it('reports too-small when the seal is below readable size', () => {
-    // 0.6x puts the dot radius at 2.4px: over MIN_BLOB_RADIUS_PX so the blobs
+    // 0.55x puts the dot radius at 2.75px: over MIN_BLOB_RADIUS_PX so the blobs
     // are still found, under MIN_READABLE_DOT_RADIUS_PX so the seal must not be
     // read. That band is what "acércate un poco más" exists for.
-    const result = decodeSeal(rasterizeSingleSeal(POSTER_OBJECTS[0].sealCode, 0.6));
+    const result = decodeSeal(rasterizeSingleSeal(POSTER_OBJECTS[0].sealCode, 0.55));
     assert.equal(result.kind, 'too-small', `expected too-small, got "${result.kind}"`);
   });
 

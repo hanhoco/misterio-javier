@@ -29,9 +29,16 @@ import { SEAL_CODE_COUNT, SEAL_FOOTPRINT } from '../src/poster/seal';
 import { drawSeal } from '../src/poster/posterRenderer';
 import { decodeSeal, type ImageDataLike } from '../src/validation/sealDecoder';
 import { buildVerdict } from '../src/validation/verdict';
+import { BUTTON_ZOOM_STEP, MIN_SCALE, clampScale } from '../src/viewer/viewerGeometry';
+import {
+  READY_TO_CROP_SCALE,
+  effectiveCropScale,
+  isReadyToCrop,
+} from '../src/viewer/zoomReadiness';
 import { cropAndResize, cropImage, upscaleImage } from './imageResample';
 import { decodePng } from './pngDecoder';
 import { SoftwareCanvasContext } from './softwareCanvas';
+import { MEASURED_STAGES, type StageBox } from './viewportFixtures';
 
 /** The tests are always spawned from the project root, by `run-tests.mjs`. */
 const SOURCE_PATH = join(process.cwd(), 'assets', 'park-source.png');
@@ -344,4 +351,187 @@ describe('seal round-trip against the park poster', () => {
       assert.deepEqual(roundTripFailures(scale), []);
     });
   }
+
+  /*
+   * Everything above this line only ever tested scale >= 1, and that is exactly
+   * why the classroom bug shipped. A child does not start at 1x. On a 1366x768
+   * school laptop the park poster opens at about 0.26x, and every test in the
+   * suite agreed the poster was fine.
+   */
+
+  /**
+   * The first scale below 1x at which all fifteen targets decode, measured
+   * against the real poster with the shipped geometry.
+   *
+   * A documented number, not a guess: the bare readable floor is
+   * MIN_READABLE_DOT_RADIUS_PX / SEAL_DOT_RADIUS = 0.60x, and at exactly 0.60x
+   * only 3 of 15 survive the antialiased rim that the saturation cut eats. At
+   * 0.62x all fifteen do.
+   *
+   * If a geometry change moves this, the change is not automatically wrong -
+   * but `READY_TO_CROP_SCALE` has to move with it, and the assertion below is
+   * what forces that to be a decision rather than an accident.
+   */
+  const FIRST_FULLY_DECODABLE_SCALE = 0.62;
+
+  it('decodes nothing below the readable floor and everything just above it', () => {
+    const belowFloor = [0.26, 0.3, 0.4, 0.5, 0.55];
+    for (const scale of belowFloor) {
+      const failures = roundTripFailures(scale);
+      assert.equal(
+        failures.length,
+        PARK_TARGETS.length,
+        `${scale}x is below the readable floor, so NOTHING should decode there; ` +
+          `${PARK_TARGETS.length - failures.length} target(s) did`,
+      );
+    }
+
+    assert.deepEqual(
+      roundTripFailures(FIRST_FULLY_DECODABLE_SCALE),
+      [],
+      `${FIRST_FULLY_DECODABLE_SCALE}x is documented as the first fully decodable scale`,
+    );
+  });
+
+  it('promises the green light no earlier than the poster can actually deliver', () => {
+    assert.ok(
+      READY_TO_CROP_SCALE >= FIRST_FULLY_DECODABLE_SCALE,
+      `the readiness light turns green at ${READY_TO_CROP_SCALE.toFixed(3)}x but the ` +
+        `park poster only decodes fully from ${FIRST_FULLY_DECODABLE_SCALE}x: a child ` +
+        'would be told "¡Listo!" and then fail',
+    );
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* The contract that shipped broken                                           */
+/* -------------------------------------------------------------------------- */
+
+describe('what a child is told at the zoom the game opens at', () => {
+  /** Same generous crop a child takes: the object plus a wide margin. */
+  const CROP_MARGIN = 40;
+
+  /**
+   * Every verdict the fifteen targets produce at one EFFECTIVE zoom, graded the
+   * way the mission screen grades them.
+   *
+   * `scale` here is the scale the child's screenshot carries - CSS zoom times
+   * device pixel ratio - because that is what resamples the poster and what the
+   * decoder measures. The same number therefore drives both the resample and
+   * the verdict, which is the invariant the whole fix rests on.
+   */
+  function verdictsAt(scale: number): string[] {
+    const image = poster();
+    const lies: string[] = [];
+
+    for (const target of PARK_TARGETS) {
+      const crop = cropImage(
+        image,
+        target.x - CROP_MARGIN,
+        target.y - CROP_MARGIN,
+        target.width + CROP_MARGIN * 2,
+        target.height + CROP_MARGIN * 2,
+      );
+      const sample = scale === 1 ? crop : upscaleImage(crop, scale);
+      const verdict = buildVerdict(
+        target,
+        decodeSeal(sample),
+        sample.width,
+        sample.height,
+        undefined,
+        scale,
+      );
+
+      /*
+       * Only two answers are ever honest.
+       *
+       * The child found it - or the child is asked to come closer. Anything
+       * else at a zoom they did not choose is the game inventing a mistake they
+       * did not make: "Esa no es la pista" told a child who searched correctly
+       * and cropped correctly that they had found the wrong object.
+       */
+      if (verdict.success) continue;
+      if (verdict.kind === 'TOO_SMALL') continue;
+      lies.push(`${scale.toFixed(3)}x ${target.id}: ${verdict.kind} - "${verdict.message}"`);
+    }
+
+    return lies;
+  }
+
+  /**
+   * The effective scales a child climbs through: the opening view, then one per
+   * press of "+", with the machine's device pixel ratio applied throughout.
+   */
+  function zoomLadder(stage: StageBox, rungs: number): number[] {
+    const scales: number[] = [];
+    let scale = stage.openingScale;
+    for (let i = 0; i < rungs; i += 1) {
+      scales.push(effectiveCropScale(scale, stage.devicePixelRatio));
+      scale = clampScale(scale * BUTTON_ZOOM_STEP);
+    }
+    return scales;
+  }
+
+  for (const stage of MEASURED_STAGES) {
+    it(`never blames the child at any zoom reachable on a ${stage.viewport} screen`, () => {
+      assert.ok(stage.openingScale > 0, 'the stage fixture has no opening scale');
+
+      const lies: string[] = [];
+      for (const scale of zoomLadder(stage, 4)) lies.push(...verdictsAt(scale));
+
+      assert.deepEqual(
+        lies,
+        [],
+        'a wrong-object verdict caused purely by zoom is the classroom bug',
+      );
+    });
+  }
+
+  it('never blames the child at ANY zoom the viewer can reach, fit or not', () => {
+    /*
+     * The ladder above starts at a measured stage box, and a measured number
+     * can go stale. This one does not depend on the chrome at all: it walks the
+     * whole range the viewer will let a child sit at, below 1:1, in steps small
+     * enough that the cliff at the readable floor cannot hide between two of
+     * them. It is the assertion that closes the hole for good.
+     */
+    const lies: string[] = [];
+    for (let scale = MIN_SCALE; scale <= 1.001; scale += 0.05) {
+      lies.push(...verdictsAt(Number(scale.toFixed(3))));
+    }
+    assert.deepEqual(lies, []);
+  });
+
+  it('lets the child win the moment the light goes green', () => {
+    // The other half of the contract. "Never lie" is satisfied by a game that
+    // says "acércate" forever; this is what stops that being the fix.
+    const failures = PARK_TARGETS.filter((target) => {
+      const image = poster();
+      const crop = cropImage(
+        image,
+        target.x - CROP_MARGIN,
+        target.y - CROP_MARGIN,
+        target.width + CROP_MARGIN * 2,
+        target.height + CROP_MARGIN * 2,
+      );
+      const sample = upscaleImage(crop, READY_TO_CROP_SCALE);
+      const verdict = buildVerdict(
+        target,
+        decodeSeal(sample),
+        sample.width,
+        sample.height,
+        undefined,
+        READY_TO_CROP_SCALE,
+      );
+      return !verdict.success;
+    }).map((target) => target.id);
+
+    assert.ok(isReadyToCrop(READY_TO_CROP_SCALE));
+    assert.deepEqual(
+      failures,
+      [],
+      `the light says "¡Listo para recortar!" at ${READY_TO_CROP_SCALE.toFixed(3)}x, ` +
+        'so every target must be findable there',
+    );
+  });
 });

@@ -22,8 +22,6 @@ import {
   firstUnfinishedIndex,
   isGameComplete,
   isMissionUnlocked,
-  markTrainingCompleted,
-  markWalkthroughSeen,
   missionProgress,
   progressScore,
   setSoundEnabled,
@@ -35,6 +33,7 @@ import { MISSIONS, STORY_MISSIONS, type Mission } from '../game/missions';
 import { loadProgress, saveLastProfile, saveProgress } from '../game/progressStore';
 import { loadParkBackground, loadPoster, type LoadedPoster } from '../poster/posterSource';
 import { mountMarkingTool } from '../tools/markingTool';
+import { isDevToolsRequested } from './devMode';
 import { button, element } from './dom';
 import { createPuzzleBoard, type PuzzleBoard } from './puzzleBoard';
 import { createResultCodeCard } from './resultCodeCard';
@@ -131,13 +130,11 @@ export function mountApp(root: HTMLElement): void {
 
   /*
    * The marking tool is for whoever is authoring a poster, not for a class.
-   * It hides behind `?dev=1` rather than behind the dev build, because the two
-   * questions are different: "am I running Vite" is not "should a nine year old
-   * see this button", and the authoring tool is genuinely useful against a
-   * production build too.
+   * The same `?dev=1` flag also turns on the poster stage's scale readout; see
+   * `devMode.ts`.
    */
   const devTools = element('details', 'dev-tools');
-  const devToolsRequested = new URLSearchParams(window.location.search).has('dev');
+  const devToolsRequested = isDevToolsRequested();
   if (devToolsRequested) {
     devTools.appendChild(element('summary', 'dev-tools__summary', 'Herramientas (dev)'));
     const markingButton = button('Marcar objetos del póster', 'button button--ghost');
@@ -308,9 +305,19 @@ export function mountApp(root: HTMLElement): void {
             saveLastProfile(identity);
             progress = loaded;
             sound.setEnabled(loaded.soundEnabled);
-            mode = loaded.trainingCompleted ? 'playing' : 'training';
+            /*
+             * Straight into mission 1. The tutorial used to sit here on a first
+             * run; the teacher watched a class meet it and asked for it off the
+             * startup path, so "¡Empezar la misión!" now means what it says.
+             * It is still one press of "Entrenamiento" away, and that button is
+             * still where the Windows + Shift + S explanation lives.
+             *
+             * Nothing about a profile decides this any more, which is the
+             * point: there is no first-run flag left to resurrect it.
+             */
+            mode = 'playing';
             trainingIsReplay = false;
-            // Warm the poster while the child reads the tutorial.
+            // Warm the poster: it is the very next thing on screen.
             void context.poster().catch(() => undefined);
             persist(loaded);
             render();
@@ -332,18 +339,14 @@ export function mountApp(root: HTMLElement): void {
           sound,
           isReplay: trainingIsReplay,
           /*
-           * Forced the first time, replayable from the "Entrenamiento" button
-           * afterwards - and those are the only two ways this screen is ever
-           * reached, so the condition is the whole policy.
+           * The tutorial is now only ever reached on purpose, from the
+           * "Entrenamiento" button, so the tour that teaches the layout runs
+           * every time it is asked for. Nothing is remembered about either one:
+           * a flag that could put them back in front of a child on startup is
+           * exactly what was removed.
            */
-          runWalkthrough: !progress.walkthroughSeen || trainingIsReplay,
-          onWalkthroughEnd() {
-            // Saved the moment the tour ends, not when the training mission
-            // does: a child who skips the guide has still seen it offered.
-            if (progress) persist(markWalkthroughSeen(progress));
-          },
+          runWalkthrough: true,
           onDone() {
-            if (progress) persist(markTrainingCompleted(progress));
             trainingIsReplay = false;
             mode = 'playing';
             render();

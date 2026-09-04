@@ -7,6 +7,7 @@
 
 import type { PosterTarget } from '../poster/posterData';
 import { findObjectBySealCode } from '../poster/posterData';
+import { isReadyToCrop } from '../viewer/zoomReadiness';
 import type { DecodeResult, SealMeasurement } from './sealDecoder';
 
 /**
@@ -109,12 +110,56 @@ function gradeCapture(
   };
 }
 
+/**
+ * Grades one pasted crop.
+ *
+ * `effectiveScale` is the zoom the child's SCREENSHOT carries - the viewer's
+ * CSS scale multiplied by the device pixel ratio, because `Win + Shift + S`
+ * photographs device pixels. Passing it is what stops the game lying to them,
+ * and passing the CSS scale instead would make the lie machine-specific: the
+ * same 0.4x is genuinely readable on a Retina screen and hopeless on a school
+ * laptop. See `effectiveCropScale` in `zoomReadiness.ts`.
+ *
+ * Below the readable floor a seal's core is physically thinner than the decoder
+ * can classify, so the crop CANNOT have been read - which means a `no-seal` or
+ * a wrong code down there says nothing whatsoever about what the child cropped.
+ * Rendering that as "Esa no es la pista" told children who had searched
+ * correctly and cropped correctly that they had found the wrong object. It is
+ * not merely unhelpful; it is false. Below the floor the answer is always
+ * "acércate un poco más".
+ *
+ * Above the floor nothing changes: a genuine wrong object is still called one.
+ * And a crop that somehow succeeded is never taken away, whatever the zoom.
+ * Omitting `effectiveScale` keeps the old behaviour, for callers with no viewer.
+ */
 export function buildVerdict(
   target: PosterTarget,
   result: DecodeResult,
   cropWidth: number,
   cropHeight: number,
   lookupBySealCode: TargetLookup = findObjectBySealCode,
+  effectiveScale?: number,
+): Verdict {
+  const verdict = gradeResult(target, result, cropWidth, cropHeight, lookupBySealCode);
+  if (verdict.success) return verdict;
+  if (effectiveScale === undefined || isReadyToCrop(effectiveScale)) return verdict;
+  return tooSmallVerdict();
+}
+
+function tooSmallVerdict(): Verdict {
+  return {
+    kind: 'TOO_SMALL',
+    success: false,
+    message: 'Acércate un poco más con el zoom antes de recortar.',
+  };
+}
+
+function gradeResult(
+  target: PosterTarget,
+  result: DecodeResult,
+  cropWidth: number,
+  cropHeight: number,
+  lookupBySealCode: TargetLookup,
 ): Verdict {
   switch (result.kind) {
     case 'no-seal':
@@ -125,11 +170,7 @@ export function buildVerdict(
       };
 
     case 'too-small':
-      return {
-        kind: 'TOO_SMALL',
-        success: false,
-        message: 'Acércate un poco más con el zoom antes de recortar.',
-      };
+      return tooSmallVerdict();
 
     case 'ambiguous': {
       // The poster carries decoy seals on dozens of crowd figures, so a crop
