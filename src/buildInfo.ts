@@ -17,13 +17,27 @@ declare const __BUILD_TIME__: string;
 export const BUILD_COMMIT: string = __BUILD_COMMIT__;
 export const BUILD_TIME: string = __BUILD_TIME__;
 
-/** Short, human readable, safe to show a teacher over a child's shoulder. */
+/**
+ * Short, human readable, safe to show a teacher over a child's shoulder.
+ *
+ * The time is rendered in the machine's OWN timezone, not UTC. The person
+ * reading it is standing in a classroom comparing it against "I deployed that
+ * a few minutes ago", and a UTC stamp makes them do arithmetic before they can
+ * answer the only question that matters: is this screen running old code?
+ *
+ * `BUILD_TIME` is stored as UTC ISO, so the conversion happens here, per
+ * viewer, and a machine with a wrong clock shows its own wrong time - which is
+ * itself worth knowing.
+ */
 export function buildLabel(): string {
   const when = new Date(BUILD_TIME);
-  const stamp = Number.isNaN(when.getTime())
-    ? BUILD_TIME
-    : when.toISOString().slice(0, 16).replace('T', ' ');
-  return `${BUILD_COMMIT} · ${stamp} UTC`;
+  if (Number.isNaN(when.getTime())) return `${BUILD_COMMIT} · ${BUILD_TIME}`;
+
+  const pad = (value: number): string => String(value).padStart(2, '0');
+  const stamp =
+    `${when.getFullYear()}-${pad(when.getMonth() + 1)}-${pad(when.getDate())} ` +
+    `${pad(when.getHours())}:${pad(when.getMinutes())}`;
+  return `${BUILD_COMMIT} · ${stamp}`;
 }
 
 /**
