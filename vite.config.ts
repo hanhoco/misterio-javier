@@ -1,11 +1,6 @@
+import { execSync } from 'node:child_process';
 import { defineConfig } from 'vite';
 
-/**
- * Port 5300 rather than Vite's default 5173: that one is already taken by
- * another project on this machine, and a silently reassigned port makes the
- * "open this URL" step unreliable. `strictPort` turns a collision into a loud
- * failure instead of a quiet move to 5301.
- */
 /**
  * GitHub Pages serves the site from `https://<user>.github.io/<repo>/`, not from
  * the root of the domain, so every asset URL needs that prefix baked in at build
@@ -17,8 +12,37 @@ import { defineConfig } from 'vite';
  */
 const base = process.env.PUBLIC_BASE ?? '/';
 
+/**
+ * The build's identity, stamped in so a running page can say which code it is.
+ *
+ * A tab opened before a deploy keeps serving its old bundle for as long as it
+ * stays open, and a classroom of twenty-five machines opened at twenty-five
+ * different moments runs twenty-five different versions of the game. That cost
+ * us most of a day: failures were blamed on the decoder while the screen was
+ * running code from three deploys earlier. Now the page prints its commit and
+ * build time to the console and shows them in the footer, so "which version is
+ * this?" is answered by looking instead of guessing.
+ */
+function describeBuild(): { commit: string; builtAt: string } {
+  let commit = 'unknown';
+  try {
+    const sha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+    const dirty = execSync('git status --porcelain', { encoding: 'utf8' }).trim().length > 0;
+    commit = dirty ? `${sha}+dirty` : sha;
+  } catch {
+    // Building outside a git checkout is fine; the page just says "unknown".
+  }
+  return { commit, builtAt: new Date().toISOString() };
+}
+
+const build = describeBuild();
+
 export default defineConfig({
   base,
+  define: {
+    __BUILD_COMMIT__: JSON.stringify(build.commit),
+    __BUILD_TIME__: JSON.stringify(build.builtAt),
+  },
   server: {
     port: 5300,
     strictPort: true,

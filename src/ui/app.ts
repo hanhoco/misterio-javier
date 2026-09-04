@@ -35,6 +35,7 @@ import { loadProgress, saveLastProfile, saveProgress } from '../game/progressSto
 import { loadParkBackground, loadPoster, type LoadedPoster } from '../poster/posterSource';
 import { mountMarkingTool } from '../tools/markingTool';
 import { isDevToolsRequested } from './devMode';
+import { buildLabel } from '../buildInfo';
 import { button, element } from './dom';
 import { createPuzzleBoard, type PuzzleBoard } from './puzzleBoard';
 import { createResultCodeCard } from './resultCodeCard';
@@ -91,6 +92,16 @@ export function mountApp(root: HTMLElement): void {
   const profileButton = button('Change detective', 'button button--ghost button--small');
   headerActions.append(codeButton, trainingButton, soundButton, profileButton);
   header.appendChild(headerActions);
+  /*
+   * The build stamp. Quiet, but always on screen: a tab opened before a
+   * deploy runs its old bundle until someone force reloads, and a class of
+   * machines opened at different moments runs different versions at once.
+   * A teacher can now read the version off any screen instead of inferring
+   * it from which mission happens to be first.
+   */
+  const buildStamp = element('p', 'header__build', buildLabel());
+  buildStamp.title = 'Build running on this machine. Press Ctrl + Shift + R to update.';
+  header.appendChild(buildStamp);
   root.appendChild(header);
 
   /*

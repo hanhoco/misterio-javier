@@ -1719,3 +1719,19 @@ body { overflow: hidden; }
   .walkthrough__text { font-size: 18px; }
   .walkthrough__diagram { max-width: 230px; }
 }
+
+/*
+ * The build stamp: legible if you look for it, invisible if you are seven.
+ * It has to be readable in a photograph taken across a classroom, which is how
+ * these reports actually arrive, so it is not smaller than 11px.
+ */
+.header__build {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint, #8C96AC);
+  opacity: 0.75;
+  white-space: nowrap;
+  cursor: help;
+}
