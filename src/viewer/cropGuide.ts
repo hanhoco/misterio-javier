@@ -67,8 +67,28 @@ export interface ViewportSize {
  */
 export const GUIDE_PRECISION_HEADROOM = 0.85;
 
-/** The area ratio the guide rectangle is built to produce. Derived, never typed. */
-export const GUIDE_AREA_RATIO = PRECISE_AREA_RATIO * GUIDE_PRECISION_HEADROOM;
+/** The widest the guide is ever allowed to be, as a multiple of the target's area. */
+export const GUIDE_AREA_CEILING = PRECISE_AREA_RATIO * GUIDE_PRECISION_HEADROOM;
+
+/**
+ * The margin the guide actually draws: a fraction of the object's SHORT side.
+ *
+ * The first version spent the whole precision budget, which is 3.4x the area -
+ * about 1.8x the width and height. On the school building that drew a rectangle
+ * wide enough to swallow the poster's title banner and a stretch of empty sky,
+ * and a teacher rightly said the frame covered two things at once.
+ *
+ * The budget is a ceiling, not a target. A guide teaches "crop THIS", so it has
+ * to hug the object; the leftover budget is slack the child is allowed to spend
+ * by hand, not slack the guide should spend for them. A tenth of the short side
+ * lands around 1.2-1.5x the area: unmistakably snug, and still far enough
+ * inside the precise band that an overshooting seven year old stays there.
+ */
+export const GUIDE_MARGIN_FRACTION = 0.1;
+
+/** Floor and ceiling in poster pixels, so tiny and huge targets both behave. */
+export const GUIDE_MARGIN_MIN_PX = 8;
+export const GUIDE_MARGIN_MAX_PX = 48;
 
 /**
  * The margin, in poster pixels, that grows a `width` x `height` box to exactly
@@ -85,7 +105,7 @@ export const GUIDE_AREA_RATIO = PRECISE_AREA_RATIO * GUIDE_PRECISION_HEADROOM;
 export function preciseCropMargin(
   width: number,
   height: number,
-  ratio: number = GUIDE_AREA_RATIO,
+  ratio: number = GUIDE_AREA_CEILING,
 ): number {
   if (!(width > 0) || !(height > 0) || ratio <= 1) return 0;
   const sum = width + height;
@@ -93,7 +113,26 @@ export function preciseCropMargin(
 }
 
 /**
- * The rectangle to draw: the target's box plus that margin on all four sides.
+ * The margin the guide draws: a snug fraction of the short side, never wider
+ * than the precision budget allows.
+ */
+export function guideMargin(
+  width: number,
+  height: number,
+  ratio: number = GUIDE_AREA_CEILING,
+): number {
+  if (!(width > 0) || !(height > 0)) return 0;
+  const snug = Math.min(
+    GUIDE_MARGIN_MAX_PX,
+    Math.max(GUIDE_MARGIN_MIN_PX, Math.min(width, height) * GUIDE_MARGIN_FRACTION),
+  );
+  // The ceiling still wins, so a very small target cannot be handed a margin
+  // that pushes its own crop out of the precise band.
+  return Math.min(snug, preciseCropMargin(width, height, ratio));
+}
+
+/**
+ * The rectangle to draw: the target's box plus a snug margin on all four sides.
  *
  * Deliberately NOT clamped to the poster's edges. Two of the fifteen park
  * targets sit close enough to a border that a clamp would silently shrink the
@@ -104,9 +143,9 @@ export function preciseCropMargin(
  */
 export function preciseCropBox(
   target: Pick<PosterTarget, 'x' | 'y' | 'width' | 'height'>,
-  ratio: number = GUIDE_AREA_RATIO,
+  ratio: number = GUIDE_AREA_CEILING,
 ): GuideRect {
-  const margin = preciseCropMargin(target.width, target.height, ratio);
+  const margin = guideMargin(target.width, target.height, ratio);
   return {
     x: target.x - margin,
     y: target.y - margin,

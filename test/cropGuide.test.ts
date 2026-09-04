@@ -21,7 +21,7 @@ import {
 import {
   CROP_GUIDE_COLORS,
   CROP_GUIDE_HEX_COLORS,
-  GUIDE_AREA_RATIO,
+  GUIDE_AREA_CEILING,
   GUIDE_PRECISION_HEADROOM,
   guideColorChannels,
   isCropGuideVisible,
@@ -82,27 +82,35 @@ describe('the crop guide rectangle', () => {
     // precision bonus. If someone replaces the derivation with a pixel margin,
     // the guide and the grader drift apart silently and the guide starts
     // teaching a crop the game no longer rewards.
-    assert.equal(GUIDE_AREA_RATIO, PRECISE_AREA_RATIO * GUIDE_PRECISION_HEADROOM);
+    assert.equal(GUIDE_AREA_CEILING, PRECISE_AREA_RATIO * GUIDE_PRECISION_HEADROOM);
     assert.ok(
-      GUIDE_AREA_RATIO < PRECISE_AREA_RATIO,
+      GUIDE_AREA_CEILING < PRECISE_AREA_RATIO,
       'the guide must sit inside the precise budget, not on its boundary',
     );
   });
 
-  it('solves the margin so the box is exactly GUIDE_AREA_RATIO of the target', () => {
+  it('draws a snug box, not one stretched to the whole budget', () => {
+    // Spending the entire budget put 3.4x the object's area on screen - roughly
+    // double its width and height - and on the school building that rectangle
+    // swallowed the poster's title banner as well. A guide says "crop THIS", so
+    // it has to hug the object; the rest of the budget is slack for the child's
+    // hand, not slack for the guide to spend on their behalf.
     for (const target of PARK_TARGETS) {
       const box = preciseCropBox(target);
       // `scale` of 1: the box is already in poster-native pixels, which is the
       // unit `computeAreaRatio` converts back into.
       const ratio = computeAreaRatio(target, 1, box.width, box.height);
       assert.ok(
-        Math.abs(ratio - GUIDE_AREA_RATIO) < 1e-9,
-        `${target.id}: guide covers ${ratio.toFixed(4)}x the object, expected ` +
-          `${GUIDE_AREA_RATIO.toFixed(4)}x`,
-      );
-      assert.ok(
         ratio <= PRECISE_AREA_RATIO,
         `${target.id}: guide would not score PRECISE (${ratio.toFixed(3)}x)`,
+      );
+      assert.ok(
+        ratio < 2,
+        `${target.id}: guide covers ${ratio.toFixed(2)}x the object, which is not snug`,
+      );
+      assert.ok(
+        ratio > 1,
+        `${target.id}: guide has no margin, so the object touches the line`,
       );
     }
   });
