@@ -24,8 +24,13 @@ const SITE = 'https://hanhoco.github.io/misterio-javier/';
 const root = process.cwd();
 const dist = join(root, 'dist');
 
-const run = (cmd, args, cwd = root) =>
-  execFileSync(cmd, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }).trim();
+const run = (cmd, args, cwd = root, env = undefined) =>
+  execFileSync(cmd, args, {
+    cwd,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'inherit'],
+    env: env ? { ...process.env, ...env } : process.env,
+  }).trim();
 
 const step = (message) => console.log(`\n== ${message}`);
 
@@ -48,7 +53,7 @@ run('npm', ['test']);
 console.log('   green');
 
 step('3/5  Building for Pages');
-run('npm', ['run', 'build:pages']);
+run('npm', ['run', 'build:pages'], root, { BUILD_COMMIT: sha });
 if (!existsSync(dist)) throw new Error('dist/ is missing after the build');
 writeFileSync(join(dist, '.nojekyll'), '');
 console.log('   built');

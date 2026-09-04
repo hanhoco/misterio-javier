@@ -24,6 +24,13 @@ const base = process.env.PUBLIC_BASE ?? '/';
  * this?" is answered by looking instead of guessing.
  */
 function describeBuild(): { commit: string; builtAt: string } {
+  // `scripts/deploy.mjs` has already refused to run on a dirty tree, so when it
+  // hands the SHA down we trust it rather than re-deriving one here. Deriving it
+  // twice produced a `+dirty` stamp on a tree that `git status` reported clean
+  // moments later, and a version stamp nobody can trust is worse than none.
+  const given = process.env.BUILD_COMMIT;
+  if (given) return { commit: given, builtAt: new Date().toISOString() };
+
   let commit = 'unknown';
   try {
     const sha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
