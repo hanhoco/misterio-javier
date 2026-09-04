@@ -1,0 +1,1649 @@
+:root {
+  --ink: #1d2340;
+  --paper: #fdf7ec;
+  --accent: #2f6df6;
+  --success: #17864a;
+  --warning: #a86200;
+  --error: #b02a37;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  font-size: 18px;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.app__title {
+  margin: 0;
+  font-size: clamp(17px, 1.6vw, 21px);
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.app__instruction {
+  margin: 0;
+  padding: 16px 20px;
+  background: #fff3c4;
+  border: 3px solid #f0c419;
+  border-radius: 18px;
+  font-size: clamp(20px, 2.6vw, 28px);
+  font-weight: 700;
+}
+
+.button {
+  font: inherit;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 3px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.button:hover { background: #eef2ff; }
+.button:focus-visible { outline: 4px solid var(--accent); outline-offset: 2px; }
+
+.button--round {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.button--ghost { border-width: 2px; }
+
+.poster-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.poster-viewer__stage {
+  position: relative;
+  width: 100%;
+  height: min(66vh, 780px);
+  min-height: 420px;
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #dfe7f2;
+}
+
+.poster-viewer__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.poster-viewer__canvas.is-dragging { cursor: grabbing; }
+
+.poster-viewer__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.poster-viewer__scale {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.paste-area {
+  border: 5px dashed var(--accent);
+  border-radius: 22px;
+  background: #eaf1ff;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.paste-area__title {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 800;
+}
+
+.paste-area__hint {
+  margin: 8px 0 0;
+  font-size: 17px;
+}
+
+.paste-area__preview[hidden] { display: none; }
+
+.paste-area__preview {
+  display: block;
+  margin: 18px auto 0;
+  max-width: 100%;
+  max-height: 260px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.verdict {
+  border: 4px solid var(--ink);
+  border-radius: 20px;
+  padding: 20px 24px;
+  background: #fff;
+}
+
+.verdict.is-success { border-color: var(--success); background: #e9f8ef; }
+.verdict.is-warning { border-color: var(--warning); background: #fff4e2; }
+.verdict.is-error { border-color: var(--error); background: #fdecee; }
+
+.verdict__message {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 800;
+}
+
+.verdict__facts {
+  margin: 16px 0 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 18px;
+  font-size: 17px;
+}
+
+.verdict__label { font-weight: 700; margin: 0; }
+.verdict__value { margin: 0; font-variant-numeric: tabular-nums; }
+
+.debug {
+  border: 2px dashed #8a93b5;
+  border-radius: 14px;
+  padding: 10px 16px;
+  background: #f4f6fb;
+  font-size: 14px;
+}
+
+.debug__summary { cursor: pointer; font-weight: 700; }
+
+.debug__output {
+  margin: 10px 0 0;
+  max-height: 300px;
+  overflow: auto;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.reference-sheet {
+  border: 4px solid var(--ink);
+  border-radius: 20px;
+  padding: 20px 24px;
+  background: #fff;
+}
+
+.reference-sheet__title { margin: 0 0 4px; font-size: 28px; }
+.reference-sheet__hint { margin: 0 0 18px; font-size: 16px; }
+
+.reference-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.seal-card {
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  padding: 12px;
+  text-align: center;
+  background: #fff;
+}
+
+.seal-card__canvas {
+  display: block;
+  margin: 0 auto 8px;
+  image-rendering: pixelated;
+}
+
+.seal-card__name { margin: 0; font-size: 19px; }
+.seal-card__code { margin: 4px 0 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.seal-card__digits { margin: 2px 0 0; font-size: 13px; color: #5a628a; }
+
+/* Header actions and the poster switcher ---------------------------------- */
+
+.app__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app__source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.app__select {
+  font: inherit;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+}
+
+.app__mission {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app__mission .app__instruction { flex: 1 1 320px; }
+
+/* Loading state ----------------------------------------------------------- */
+
+.poster-viewer__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dfe7f2;
+  color: var(--ink);
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 800;
+  text-align: center;
+  padding: 20px;
+}
+
+.poster-viewer__loading[hidden] { display: none; }
+
+.poster-viewer__canvas.is-drawing { cursor: crosshair; }
+
+/* Marking tool ------------------------------------------------------------ */
+
+.marking {
+  border: 4px solid var(--accent);
+  border-radius: 20px;
+  padding: 18px 20px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.marking__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.marking__title { margin: 0; font-size: 26px; }
+.marking__subtitle { margin: 0; font-size: 18px; }
+
+.marking__tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.marking__hint { margin: 0; font-size: 15px; color: #4a5178; }
+
+.marking__body {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .marking__body { grid-template-columns: minmax(0, 1fr); }
+}
+
+.marking__stage {
+  position: relative;
+  height: min(60vh, 620px);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #dfe7f2;
+}
+
+.marking__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.marking__empty { margin: 0; font-size: 15px; color: #5a628a; }
+
+.marking__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.marking__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 2px solid #c9cee6;
+  border-radius: 12px;
+}
+
+.marking__item.is-selected { border-color: var(--accent); background: #eef3ff; }
+
+.marking__name {
+  font: inherit;
+  font-size: 15px;
+  padding: 6px 10px;
+  border: 2px solid #c9cee6;
+  border-radius: 10px;
+  min-width: 0;
+}
+
+.marking__code {
+  font-weight: 700;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: #4a5178;
+}
+
+.marking__remove { padding: 6px 12px; font-size: 14px; }
+
+.marking__output {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 13px;
+  padding: 10px;
+  border: 2px solid #c9cee6;
+  border-radius: 12px;
+  resize: vertical;
+  width: 100%;
+}
+
+.marking__note { margin: 0; font-size: 14px; color: #4a5178; min-height: 20px; }
+
+/* ==========================================================================
+   The game layer
+   ==========================================================================
+   Stage 13. Big type, big targets, short lines, immediate feedback. The look
+   is meant to read as "estoy jugando a ser detective", so it leans on warm
+   paper, thick outlines and a lot of colour, and it never uses the visual
+   language of a form or a quiz.
+
+   Motion is deliberately small and every animation is disabled wholesale by
+   the `prefers-reduced-motion` block at the end of this file.
+   ========================================================================== */
+
+:root {
+  --joy: #ff5fa2;
+  --joy-deep: #c2185b;
+  --sun: #ffc93c;
+  --leaf: #2fa84f;
+  --sky: #3aa0e6;
+  --shadow: 0 6px 0 rgba(29, 35, 64, 0.16);
+}
+
+.app__header[hidden],
+.app__actions[hidden],
+.app__status[hidden],
+.app__puzzle[hidden],
+.dev-tools[hidden] { display: none; }
+
+.app__brand { display: flex; flex-direction: column; gap: 4px; }
+
+.app__who {
+  margin: 0;
+  font-weight: 700;
+  font-size: 16px;
+  color: #4a5178;
+}
+
+.app__status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.progress {
+  flex: 1 1 240px;
+  height: 22px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--sun), var(--leaf));
+  transition: width 320ms ease;
+}
+
+.app__status-text,
+.app__score {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.app__score {
+  background: var(--sun);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 4px 14px;
+}
+
+.app__body { display: block; }
+
+.app__loading {
+  margin: 0;
+  padding: 48px 20px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Screens ---------------------------------------------------------------- */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.screen__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.screen__heading { display: flex; flex-direction: column; gap: 4px; }
+.screen__eyebrow {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--joy-deep);
+}
+.screen__title { margin: 0; font-size: clamp(24px, 3.4vw, 36px); }
+.screen__subtitle { margin: 0; font-size: 19px; color: #3c4468; }
+.screen__footer { display: flex; justify-content: center; }
+
+.callout {
+  margin: 0;
+  padding: 16px 20px;
+  border: 3px solid var(--sky);
+  border-radius: 18px;
+  background: #e6f3fd;
+  font-size: 18px;
+}
+
+/* Buttons ---------------------------------------------------------------- */
+
+.button--primary {
+  background: var(--joy);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.button--primary:hover { background: var(--joy-deep); }
+
+.button--big {
+  font-size: clamp(20px, 2.4vw, 26px);
+  padding: 16px 30px;
+}
+
+.button:active { transform: translateY(2px); }
+
+/* Key hints -------------------------------------------------------------- */
+
+.keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.keys__cap {
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.95em;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-bottom-width: 6px;
+  border-radius: 10px;
+  padding: 4px 12px;
+  min-width: 44px;
+  text-align: center;
+}
+
+.keys__plus { font-weight: 800; }
+
+/* Profile ---------------------------------------------------------------- */
+
+.screen--profile { align-items: center; text-align: center; }
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.hero__title {
+  margin: 0;
+  font-size: clamp(30px, 6vw, 56px);
+  line-height: 1.05;
+  color: var(--joy-deep);
+}
+
+.hero__story { margin: 0; font-size: clamp(18px, 2.2vw, 22px); }
+
+.card {
+  width: min(520px, 100%);
+  background: #fff;
+  border: 4px solid var(--ink);
+  border-radius: 26px;
+  box-shadow: var(--shadow);
+  padding: 26px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.card__title { margin: 0; font-size: 24px; text-align: center; }
+.card__hint { margin: 0; font-size: 15px; color: #4a5178; text-align: center; }
+
+.card__notice {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #fdecee;
+  border: 2px solid var(--error);
+  font-weight: 700;
+}
+.card__notice[hidden] { display: none; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field__label { font-weight: 800; }
+
+.field__input {
+  font: inherit;
+  font-size: 22px;
+  padding: 12px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: #fffdf7;
+}
+.field__input:focus-visible { outline: 4px solid var(--accent); outline-offset: 2px; }
+
+/* Guided steps ----------------------------------------------------------- */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  counter-reset: step;
+}
+
+.steps__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px 14px;
+  padding: 16px 18px;
+  border: 3px solid #cfd6ea;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.steps__item[hidden] { display: none; }
+
+.steps__item.is-current {
+  border-color: var(--joy);
+  background: #fff2f7;
+  box-shadow: var(--shadow);
+  animation: step-in 260ms ease;
+}
+
+.steps__item.is-done {
+  border-color: var(--leaf);
+  background: #eefaf0;
+  opacity: 0.75;
+}
+
+.steps__badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 20px;
+  border: 3px solid var(--ink);
+  background: var(--sun);
+}
+
+.steps__item.is-done .steps__badge { background: var(--leaf); color: #fff; }
+.steps__item.is-done .steps__badge::after { content: ''; }
+
+.steps__body { display: flex; flex-direction: column; gap: 8px; }
+.steps__text { margin: 0; font-size: 19px; font-weight: 700; }
+
+.steps__action { grid-column: 2; justify-self: start; }
+
+@keyframes step-in {
+  from { transform: translateY(-6px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* Evidence box ----------------------------------------------------------- */
+
+.evidence {
+  border: 5px dashed var(--accent);
+  border-radius: 22px;
+  background: #eaf1ff;
+  padding: 20px;
+  text-align: center;
+  transition: opacity 200ms ease;
+}
+
+.evidence.is-disabled { opacity: 0.7; border-style: solid; border-color: var(--leaf); }
+
+.evidence__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.evidence__title { margin: 0; font-size: clamp(19px, 2.4vw, 26px); font-weight: 800; }
+.evidence__hint { margin: 8px 0 0; font-size: 16px; color: #3c4468; }
+
+.evidence__preview[hidden] { display: none; }
+.evidence__preview {
+  display: block;
+  margin: 16px auto 0;
+  max-width: 100%;
+  max-height: 220px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.evidence__feedback {
+  margin: 14px 0 0;
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 800;
+  min-height: 1.4em;
+}
+
+.evidence__feedback.is-success { color: var(--success); }
+.evidence__feedback.is-warning { color: var(--warning); }
+.evidence__feedback.is-error { color: var(--error); }
+
+.evidence__facts {
+  margin: 10px 0 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px 18px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: #4a5178;
+}
+.evidence__label { margin: 0; font-weight: 700; }
+.evidence__label::after { content: ':'; }
+.evidence__value { margin: 0; font-variant-numeric: tabular-nums; }
+
+/* Missions --------------------------------------------------------------- */
+
+.brief {
+  padding: 18px 22px;
+  border: 4px solid var(--sun);
+  border-radius: 22px;
+  background: #fff8e2;
+}
+
+.brief__counter {
+  margin: 0 0 6px;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #7a5c00;
+}
+
+.brief__objective { margin: 0; font-size: clamp(24px, 3.6vw, 38px); line-height: 1.15; }
+.brief__clue { margin: 8px 0 0; font-size: 18px; }
+
+.mission__poster { display: flex; flex-direction: column; gap: 12px; }
+
+.mission__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mission__reward {
+  margin: 0;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--success);
+}
+.mission__reward[hidden] { display: none; }
+
+/* Training and drills ---------------------------------------------------- */
+
+/* The picture goes across the top at full width and the instructions sit
+   underneath it, side by side. An earlier version put them in two columns with
+   the picture in the left one, which left a search-and-find game with a stage
+   barely 600px wide. */
+.training__body,
+.drill__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.training__poster,
+.drill__poster { display: flex; flex-direction: column; gap: 12px; }
+
+.training__side,
+.drill__side {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.05fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.training__side > .button--big,
+.drill__side > .button--big {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+@media (max-width: 940px) {
+  .training__side,
+  .drill__side { grid-template-columns: 1fr; }
+}
+
+.poster-viewer__stage--practice { height: min(52vh, 560px); }
+
+.drill__demo {
+  padding: 20px 22px;
+  border: 4px solid var(--sky);
+  border-radius: 22px;
+  background: #e9f4fd;
+}
+
+.drill__demo-title { margin: 0 0 10px; font-size: 24px; }
+.drill__demo-text { margin: 0 0 12px; font-size: 18px; }
+
+.drill__keys { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.drill__key-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.drill__key-label { font-weight: 800; min-width: 220px; }
+
+.drill__card-panel { display: flex; flex-direction: column; gap: 10px; }
+.drill__card-title { margin: 0; font-weight: 800; font-size: 19px; }
+.drill__card-hint { margin: 0; font-size: 15px; color: #4a5178; }
+
+.copy-card {
+  margin: 0;
+  padding: 14px;
+  border: 4px dashed var(--joy);
+  border-radius: 20px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.copy-card.is-selected { border-style: solid; background: #fff2f7; }
+
+.copy-card__image {
+  display: block;
+  width: min(320px, 100%);
+  height: auto;
+  border-radius: 12px;
+}
+
+/* Puzzle ----------------------------------------------------------------- */
+
+.app__puzzle { display: flex; flex-direction: column; gap: 8px; }
+
+.app__puzzle-label { margin: 0; font-size: 15px; color: #4a5178; font-weight: 700; }
+
+.puzzle {
+  display: grid;
+  grid-template-columns: repeat(var(--puzzle-columns, 5), 1fr);
+  gap: 6px;
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  background: #cfd6ea;
+  padding: 6px;
+}
+
+.puzzle--compact { max-width: 340px; }
+.puzzle--full { width: min(900px, 100%); margin: 0 auto; gap: 4px; }
+
+.puzzle__cell {
+  position: relative;
+  aspect-ratio: var(--puzzle-aspect, 1 / 1);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #eef2f9;
+}
+
+.puzzle__piece {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.puzzle__cover {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: clamp(12px, 2vw, 22px);
+  color: #6b7398;
+  background: repeating-linear-gradient(
+    45deg,
+    #e3e8f4,
+    #e3e8f4 8px,
+    #d7deee 8px,
+    #d7deee 16px
+  );
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.puzzle__cell.is-open .puzzle__cover {
+  opacity: 0;
+  transform: scale(1.15);
+  pointer-events: none;
+}
+
+/* Result code ------------------------------------------------------------ */
+
+.app__code-panel[hidden] { display: none; }
+
+.result-code {
+  border: 4px solid var(--leaf);
+  border-radius: 22px;
+  background: #f0fbf2;
+  padding: 20px 24px;
+  text-align: center;
+}
+
+.result-code__title { margin: 0; font-size: 22px; }
+.result-code__hint { margin: 6px 0 14px; font-size: 16px; color: #3c4468; }
+
+.result-code__value {
+  margin: 0;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: clamp(16px, 2.4vw, 24px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  word-break: break-all;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.result-code__actions {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.result-code__status { font-weight: 700; color: var(--success); }
+
+/* Finale ----------------------------------------------------------------- */
+
+.finale__banner { text-align: center; }
+
+.finale__title {
+  margin: 0;
+  font-size: clamp(26px, 5vw, 48px);
+  color: var(--joy-deep);
+  animation: pop 500ms ease;
+}
+
+.finale__subtitle { margin: 10px 0 0; font-size: 20px; }
+
+.finale__stats {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  min-width: 160px;
+  padding: 14px 18px;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat__value { font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.stat__label { font-size: 14px; color: #4a5178; font-weight: 700; }
+
+.finale__actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@keyframes pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* Teacher panel ---------------------------------------------------------- */
+
+.screen--teacher { max-width: 1100px; }
+
+.teacher__input {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 17px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  resize: vertical;
+}
+
+.teacher__actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.teacher__errors { display: flex; flex-direction: column; gap: 8px; }
+
+.teacher__error {
+  margin: 0;
+  padding: 10px 14px;
+  border: 2px solid var(--error);
+  border-radius: 12px;
+  background: #fdecee;
+  font-size: 16px;
+}
+
+.teacher__summary { margin: 0; font-weight: 700; }
+
+.teacher__output { overflow-x: auto; }
+
+.results {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  overflow: hidden;
+  font-size: 16px;
+}
+
+.results th,
+.results td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #dde3f0;
+  vertical-align: middle;
+}
+
+.results th { background: #eef2fb; font-size: 14px; text-transform: uppercase; letter-spacing: 0.4px; }
+.results tr:last-child td { border-bottom: 0; }
+
+.results__name { font-weight: 800; }
+.results__percent { font-weight: 700; font-variant-numeric: tabular-nums; }
+.results__trouble { font-size: 14px; color: #4a5178; max-width: 320px; }
+
+.results__bar {
+  display: inline-block;
+  width: 110px;
+  height: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  overflow: hidden;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.results__bar-fill { height: 100%; background: var(--leaf); }
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  font-weight: 800;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.badge.is-gold { background: #ffe9a8; }
+.badge.is-silver { background: #e6ecf7; }
+.badge.is-bronze { background: #f7e3d0; }
+.badge.is-start { background: #e7f6e9; }
+
+/* Dev tools -------------------------------------------------------------- */
+
+.dev-tools {
+  border: 2px dashed #b9c1da;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 15px;
+}
+.dev-tools__summary { cursor: pointer; font-weight: 700; }
+
+/* Reduced motion --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .button:active { transform: none; }
+  .puzzle__cell.is-open .puzzle__cover { transform: none; }
+}
+
+
+/* ==========================================================================
+   Layout corrections
+   ==========================================================================
+   The first build put the whole dashboard above the game and left the poster
+   in a 601x432 box. These rules are the fix: a quiet brand strip, the game at
+   full width underneath it, and progress, score and puzzle in a footer.
+   ========================================================================== */
+
+.app {
+  max-width: 1500px;
+  padding: 14px 20px 48px;
+  gap: 14px;
+}
+
+.app__header {
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e5f2;
+}
+
+.app__brand { flex-direction: row; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.app__who { font-size: 15px; }
+
+.app__actions { gap: 8px; }
+
+.button--small {
+  font-size: 14px;
+  padding: 6px 14px;
+  border-width: 2px;
+}
+
+.app__body { flex: 1 1 auto; }
+
+.app__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 2px solid #e0e5f2;
+}
+.app__footer[hidden] { display: none; }
+
+.app__puzzle { flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; }
+.app__puzzle-label { max-width: 320px; }
+
+/* The mission stage is the biggest thing on the page, by a wide margin. */
+.mission__poster { gap: 10px; }
+.screen--mission { gap: 14px; }
+.brief { padding: 14px 20px; }
+.brief__objective { font-size: clamp(22px, 3.2vw, 34px); }
+.brief__clue { font-size: 17px; }
+
+.screen--training .callout,
+.screen--drill .callout { font-size: 17px; }
+
+/* The current step should be the loudest thing after the picture, and the
+   evidence box should read as a quieter target, not as a rival panel. */
+.steps__item.is-current {
+  border-width: 4px;
+  padding: 18px 20px;
+}
+.steps__item.is-current .steps__text { font-size: 21px; }
+
+.evidence { border-width: 4px; padding: 16px; }
+.evidence__title { font-size: clamp(17px, 1.9vw, 21px); }
+
+/* A short aside that tells the child WHERE to point the snipping tool. */
+.aim-note {
+  margin: 0;
+  padding: 12px 16px;
+  border: 3px dashed var(--leaf);
+  border-radius: 16px;
+  background: #f1fbf3;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.training__instructions { display: flex; flex-direction: column; gap: 14px; }
+
+/* ==========================================================================
+   Two-column game layout
+   ==========================================================================
+   The user's brief, verbatim: the puzzle goes "al lado pero no arriba", and
+   the focus belongs to searching the picture and taking the screenshot.
+
+   So the page is a fixed-height frame: a quiet header row, then a main column
+   holding the mission and the picture, then a rail. Nothing scrolls during a
+   mission - the picture and the paste target have to be on screen together on
+   a 1366x768 school laptop, because snipping and pasting are two ends of one
+   gesture and a scroll between them breaks it.
+   ========================================================================== */
+
+body { overflow: hidden; }
+
+.app {
+  height: 100dvh;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 10px 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.app__header { flex: 0 0 auto; padding-bottom: 8px; }
+
+.app__layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 16px;
+}
+
+/* The profile, teacher and finale screens get the whole width. */
+.app__layout--solo { grid-template-columns: minmax(0, 1fr); }
+
+.app__body {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+/* A mission fills the column exactly; longer screens scroll inside it. */
+.screen--mission,
+.screen--training,
+.screen--drill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.screen--profile,
+.screen--teacher,
+.screen--finale {
+  overflow: auto;
+  padding-bottom: 24px;
+}
+
+/* Rail --------------------------------------------------------------------- */
+
+.rail {
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 3px solid var(--ink);
+  border-radius: 20px;
+  background: #fff;
+}
+.rail[hidden] { display: none; }
+
+.rail__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #4a5178;
+}
+
+.rail__puzzle { display: flex; flex-direction: column; gap: 8px; }
+
+.rail__hint { margin: 0; font-size: 13px; color: #5a628a; line-height: 1.3; }
+
+.rail__count {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.rail__score {
+  margin: 0;
+  align-self: flex-start;
+  background: var(--sun);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.rail .puzzle--compact { max-width: none; }
+
+/* The mission column ------------------------------------------------------- */
+
+.screen--mission {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.screen--mission .brief { flex: 0 0 auto; padding: 10px 18px; }
+.brief__counter { margin-bottom: 2px; }
+.screen--mission .brief__objective { font-size: clamp(21px, 2.6vw, 32px); }
+.screen--mission .brief__clue { margin-top: 4px; font-size: 16px; }
+
+/* The stage takes everything that is left, which is most of the screen. */
+.stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.screen--mission .poster-viewer__stage,
+.screen--training .poster-viewer__stage,
+.screen--drill .poster-viewer__stage {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 200px;
+}
+
+.poster-viewer__controls { flex: 0 0 auto; }
+
+.screen--mission .evidence,
+.screen--mission .mission__actions { flex: 0 0 auto; }
+
+/* Compact evidence: one row, so it fits under the picture without scrolling. */
+.evidence--compact {
+  padding: 10px 16px;
+  text-align: left;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px 16px;
+}
+
+.evidence--compact .evidence__header { justify-content: flex-start; gap: 10px; }
+.evidence--compact .evidence__title { font-size: 18px; }
+.evidence--compact .evidence__hint { margin: 0; font-size: 14px; }
+.evidence--compact .evidence__feedback {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 18px;
+  min-height: 0;
+}
+.evidence--compact .evidence__facts { grid-column: 1 / -1; justify-content: flex-start; margin: 0; }
+.evidence--compact .evidence__preview {
+  grid-row: 1 / 3;
+  grid-column: 3;
+  margin: 0;
+  max-height: 74px;
+}
+
+.mission__actions { justify-content: flex-start; gap: 12px; }
+.mission__reward { font-size: 17px; }
+.screen--mission .button--big { font-size: 19px; padding: 10px 22px; }
+
+/* The snip marker ---------------------------------------------------------- */
+
+.snip-marker {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 2px dashed var(--joy-deep);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--joy-deep);
+  font-size: 13px;
+  font-weight: 800;
+  /* Never swallow a drag: the child pans the poster with this same pointer. */
+  pointer-events: none;
+}
+
+.snip-marker__icon { font-size: 15px; }
+
+/* Training and drills in the narrower column ------------------------------- */
+
+.screen--training,
+.screen--drill {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+}
+
+.screen--training .screen__header,
+.screen--drill .screen__header { flex: 0 0 auto; }
+
+.training__body,
+.drill__body { flex: 1 1 auto; min-height: 0; }
+
+.training__poster,
+.drill__poster { flex: 1 1 auto; min-height: 260px; display: flex; }
+
+.screen--training .callout { padding: 10px 16px; font-size: 16px; }
+.screen--training .screen__title { font-size: 24px; }
+
+/* Narrow screens: the rail becomes a strip under the game, never above it. */
+@media (max-width: 1100px) {
+  body { overflow: auto; }
+  .app { height: auto; overflow: visible; }
+  .app__layout { grid-template-columns: minmax(0, 1fr); }
+  .app__body { overflow: visible; }
+  .rail { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .rail__puzzle { flex-direction: row; align-items: center; gap: 12px; }
+  .rail .puzzle--compact { max-width: 300px; }
+  .screen--mission .poster-viewer__stage { min-height: 420px; }
+}
+
+
+/* The rail's own progress bar must not stretch to fill a column. */
+.rail .progress {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 18px;
+}
+
+/* ==========================================================================
+   Short viewports (the 1366x768 school laptop)
+   ==========================================================================
+   Everything on a mission screen except the picture has a fixed height, so on
+   a short screen the picture is what absorbs the shortfall - which is exactly
+   backwards. These rules shrink the chrome instead, and drop the two lines of
+   scene-setting prose that a child only needs to read once.
+   ========================================================================== */
+
+@media (min-width: 1101px) and (max-height: 860px) {
+  .app { padding: 6px 14px 8px; gap: 6px; }
+  .app__header { padding-bottom: 5px; }
+  .app__title { font-size: 16px; }
+  .app__who { font-size: 13px; }
+
+  .button--round { width: 48px; height: 48px; font-size: 26px; }
+
+  .screen--mission .brief { padding: 7px 14px; }
+  .screen--mission .brief__objective { font-size: 23px; }
+  .screen--mission .brief__clue { font-size: 14px; }
+  .brief__counter { font-size: 13px; }
+
+  .evidence--compact { padding: 7px 14px; }
+  .evidence--compact .evidence__title { font-size: 16px; }
+  .evidence--compact .evidence__hint { font-size: 13px; }
+  .keys__cap { padding: 2px 9px; min-width: 34px; }
+
+  /* The tutorial's scene-setting line has done its job by the time the child
+     is on step one; the aim note is the part that stays useful. */
+  .screen--training .callout,
+  .screen--drill .callout { display: none; }
+  .screen--training .screen__subtitle { display: none; }
+  .screen--training .screen__title { font-size: 20px; }
+  .screen--training .screen__header { gap: 8px; }
+
+  .aim-note { padding: 8px 12px; font-size: 14px; }
+  .steps__item { padding: 10px 14px; }
+  .steps__item.is-current { padding: 12px 15px; }
+  .steps__item.is-current .steps__text { font-size: 18px; }
+  .steps__badge { width: 36px; height: 36px; font-size: 17px; }
+
+  .training__poster,
+  .drill__poster { min-height: 300px; }
+
+  .rail { padding: 10px; gap: 7px; }
+  .rail__title { font-size: 12px; }
+  .rail__count { font-size: 15px; }
+}
+
+.drill__side--single { grid-template-columns: minmax(0, 1fr); max-width: 760px; }
+
+
+/* ==========================================================================
+   The blocking walkthrough
+   ==========================================================================
+   A dark scrim with one hole in it, and a bubble beside the hole. See
+   `walkthroughOverlay.ts` for why the hole is one element and the blocking is
+   four others, and for why the snip step removes all five.
+   ========================================================================== */
+
+.walkthrough {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  /* The layer itself must not eat clicks: the blockers do that, and the hole
+     must stay click-through so the spotlighted control still works. */
+  pointer-events: none;
+}
+
+.walkthrough[hidden] { display: none; }
+
+/* The hole. Transparent; the shadow paints everything outside it. */
+.walkthrough__hole {
+  position: fixed;
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgba(12, 15, 34, 0.74);
+  outline: 3px solid #ffd45e;
+  outline-offset: 0;
+  pointer-events: none;
+  transition: top 160ms ease, left 160ms ease, width 160ms ease, height 160ms ease;
+}
+
+/* A step with no target darkens the whole screen and needs no ring. */
+.walkthrough--full .walkthrough__hole { outline: none; }
+
+/* The four transparent rectangles that do the actual blocking. */
+.walkthrough__block {
+  position: fixed;
+  pointer-events: auto;
+  background: transparent;
+}
+
+.walkthrough__bubble {
+  position: fixed;
+  z-index: 2;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  padding: 16px 18px 14px;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 16px 34px rgba(12, 15, 34, 0.34);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.walkthrough__bubble:focus-visible { outline: 4px solid var(--accent); outline-offset: 3px; }
+
+.walkthrough__text {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.walkthrough__extras { display: flex; flex-direction: column; gap: 10px; }
+.walkthrough__extras:empty { display: none; }
+
+.walkthrough__diagram {
+  width: 100%;
+  height: auto;
+  max-width: 300px;
+  border-radius: 10px;
+}
+
+.walkthrough__dots { display: flex; gap: 7px; }
+
+.walkthrough__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cfd5ea;
+}
+
+.walkthrough__dot.is-done { background: var(--leaf, #5fa845); }
+
+.walkthrough__dot.is-current {
+  background: var(--accent);
+  transform: scale(1.35);
+}
+
+.walkthrough__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Quiet, and never a competitor to the step's own button. */
+.walkthrough__skip {
+  border: none;
+  background: none;
+  padding: 4px 2px;
+  color: #5a628a;
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.walkthrough__skip:hover { color: var(--ink); }
+.walkthrough__skip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.walkthrough__next[hidden] { display: none; }
+
+.walkthrough__confirm {
+  border-top: 2px dashed #cfd5ea;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.walkthrough__confirm[hidden] { display: none; }
+.walkthrough__confirm-text { margin: 0; font-size: 16px; font-weight: 700; }
+.walkthrough__confirm-row { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* The snip step ------------------------------------------------------------
+   No scrim, no hole, no blockers: only this, parked in whichever viewport
+   corner is furthest from the poster. Anything painted over the poster here
+   would be inside the child's screenshot, and a dark wash over a seal pushes it
+   under the decoder's value floor, where it reads as nothing at all. */
+
+.walkthrough__snip-hint {
+  position: fixed;
+  z-index: 90;
+  width: min(340px, calc(100vw - 24px));
+}
+
+.walkthrough__snip-hint[hidden] { display: none; }
+
+.walkthrough__snip-hint .walkthrough__bubble {
+  position: static;
+  width: 100%;
+  border-color: var(--accent);
+}
+
+/* Reduced motion: the hole jumps instead of gliding. */
+@media (prefers-reduced-motion: reduce) {
+  .walkthrough__hole { transition: none; }
+  .walkthrough__dot.is-current { transform: none; }
+}
+
+.walkthrough--still .walkthrough__hole { transition: none; }
+.walkthrough--still .walkthrough__dot.is-current { transform: none; }
+
+/* Short viewports: the bubble gives up padding before it gives up words. */
+@media (max-height: 860px) {
+  .walkthrough__bubble { padding: 12px 14px 11px; gap: 8px; }
+  .walkthrough__text { font-size: 18px; }
+  .walkthrough__diagram { max-width: 230px; }
+}

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": false,
+    "outDir": "dist-test",
+    "rootDir": "."
+  },
+  "include": [
+    "src/poster/seal.ts",
+    "src/poster/posterData.ts",
+    "src/poster/posterRenderer.ts",
+    "src/poster/sealPlacement.ts",
+    "src/poster/paletteSanitizer.ts",
+    "src/poster/parkPosterData.ts",
+    "src/poster/imagePoster.ts",
+    "src/poster/practicePoster.ts",
+    "src/validation",
+    "src/game/scoring.ts",
+    "src/game/missions.ts",
+    "src/game/gameState.ts",
+    "src/game/resultCode.ts",
+    "src/game/progressStore.ts",
+    "src/ui/walkthrough.ts",
+    "test"
+  ]
+}
