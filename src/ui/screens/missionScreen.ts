@@ -20,6 +20,8 @@ import {
   type DecodeDiagnostics,
 } from '../../validation/sealDecoder';
 import { buildVerdict, type Verdict, type VerdictKind } from '../../validation/verdict';
+import { isReadyToCrop } from '../../viewer/zoomReadiness';
+import { logDecode } from '../../diagnosticsLog';
 import { attachCropGuide, type CropGuideHandle } from '../cropGuideOverlay';
 import { isDevToolsRequested } from '../devMode';
 import { button, element } from '../dom';
@@ -152,6 +154,42 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
         poster.findBySealCode,
         stage.viewer.getEffectiveScale(),
       );
+
+      /*
+       * Log the attempt before anything is shown. A failure in the classroom
+       * arrives as a photograph of a screen, and for a week the answer to "why
+       * did that crop fail?" was a guess - three of them wrong, each costing a
+       * lesson. Everything that could explain it goes to the console now.
+       */
+      const scaleState = stage.viewer.getScaleState();
+      const firstSeal = report.diagnostics.seals[0] ?? null;
+      logDecode({
+        mission: mission.id,
+        target: target.id,
+        expectedCode: target.sealCode,
+        crop: { width: pasted.width, height: pasted.height },
+        zoom: {
+          css: scaleState.scale,
+          devicePixelRatio: scaleState.devicePixelRatio,
+          effective: scaleState.effectiveScale,
+        },
+        readable: isReadyToCrop(scaleState.effectiveScale),
+        reader: {
+          saturatedPixels: report.diagnostics.saturatedPixelCount,
+          classifiedPixels: report.diagnostics.classifiedPixelCount,
+          blobs: report.diagnostics.blobCount,
+          undersizedBlobs: report.diagnostics.undersizedBlobCount,
+          sealsFound: report.diagnostics.seals.length,
+          codesRead: report.diagnostics.seals.map((seal) => seal.code),
+          dotRadiusPx: firstSeal ? firstSeal.dotRadiusPx : null,
+          armDistancePx: firstSeal ? firstSeal.armDistancePx : null,
+          measuredScale: firstSeal ? firstSeal.scale : null,
+        },
+        result: report.result.kind,
+        verdict: verdict.kind,
+        success: verdict.success,
+        areaRatio: verdict.areaRatio ?? null,
+      });
 
       const copy = FEEDBACK[verdict.kind];
       evidence.say(copy.message, copy.tone);
