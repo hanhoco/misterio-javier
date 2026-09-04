@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
-    "test": "node scripts/run-tests.mjs"
+    "test": "node scripts/run-tests.mjs",
+    "build:pages": "PUBLIC_BASE=/misterio-javier/ npm run build"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
