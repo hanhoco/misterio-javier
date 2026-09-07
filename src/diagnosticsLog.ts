@@ -34,6 +34,9 @@ export interface DecodeLogEntry {
     undersizedBlobs: number;
     sealsFound: number;
     codesRead: number[];
+    /** Classified pixels and accepted dots per colour: magenta, cyan, lime, orange. */
+    pixelsByColor: number[];
+    blobsByColor: number[];
     dotRadiusPx: number | null;
     armDistancePx: number | null;
     measuredScale: number | null;
@@ -74,6 +77,22 @@ const STYLE_OK = 'background:#1F7A4C;color:#fff;padding:1px 6px;border-radius:3p
 const STYLE_BAD = 'background:#B3402F;color:#fff;padding:1px 6px;border-radius:3px';
 const STYLE_ERR = 'background:#7A1F1F;color:#fff;padding:1px 6px;border-radius:3px';
 
+/** Colour names in `RESERVED_HUES` order, for humans reading a console. */
+const COLOUR_NAMES = ['magenta', 'cyan', 'lime', 'orange'];
+
+/**
+ * Pixels and dots per colour, on one line.
+ *
+ * A seal carries five dots. A decode that finds three of them every time, at
+ * three different zoom levels, is not losing them to blur - it is losing a
+ * specific colour, and only this split can say which.
+ */
+function colourBreakdown(pixels: number[] = [], blobs: number[] = []): string {
+  return COLOUR_NAMES
+    .map((name, i) => `${name} ${pixels[i] ?? 0}px/${blobs[i] ?? 0}dot`)
+    .join('  ');
+}
+
 /**
  * The one line that explains the failure, in words rather than fields.
  *
@@ -93,7 +112,11 @@ export function explainDecode(entry: DecodeLogEntry): string {
   if (r.blobs === 0) {
     return `${r.classifiedPixels} seal-coloured pixels but no usable dots - too small or misshapen`;
   }
-  if (r.sealsFound === 0) return `${r.blobs} dots found but none formed a cross`;
+  if (r.sealsFound === 0) {
+    const missing = COLOUR_NAMES.filter((_, i) => (r.blobsByColor?.[i] ?? 0) === 0);
+    const which = missing.length && missing.length < 4 ? ` - no ${missing.join(' or ')} dot at all` : '';
+    return `${r.blobs} dots found but none formed a cross${which}`;
+  }
   if (!entry.success) return `read code ${r.codesRead.join(', ')}, needed ${entry.expectedCode}`;
   return 'read the expected code';
 }
@@ -110,11 +133,11 @@ export function logDecode(entry: Omit<DecodeLogEntry, 'kind' | 'at' | 'build'>):
 
   const label = full.success ? 'FOUND' : 'MISSED';
   const style = full.success ? STYLE_OK : STYLE_BAD;
-  console.groupCollapsed(
-    `%c${label}%c ${full.target} - ${explainDecode(full)}`,
-    style,
-    'color:inherit',
-  );
+  // A failure opens itself; a success stays folded. These reports arrive as a
+  // photograph of a screen, and nobody in a classroom is going to click a
+  // triangle before taking it.
+  const open = full.success ? console.groupCollapsed : console.group;
+  open.call(console, `%c${label}%c ${full.target} - ${explainDecode(full)}`, style, 'color:inherit');
   console.log('build      ', buildLabel());
   console.log('mission    ', full.mission, '- target', full.target, '- expects code', full.expectedCode);
   console.log('crop       ', `${full.crop.width} x ${full.crop.height} px`);
@@ -125,7 +148,19 @@ export function logDecode(entry: Omit<DecodeLogEntry, 'kind' | 'at' | 'build'>):
     `- effective ${full.zoom.effective.toFixed(3)}x`,
     full.readable ? '(readable)' : '(BELOW the readable floor)',
   );
-  console.log('reader     ', full.reader);
+  // Printed as text, not as an object: a collapsed "> Object" in a photograph
+  // of a classroom screen is worth nothing, and these reports arrive as photos.
+  const r = full.reader;
+  console.log(
+    'reader     ',
+    `saturated ${r.saturatedPixels}, in-hue ${r.classifiedPixels}, ` +
+      `dots ${r.blobs} (${r.undersizedBlobs} too small), seals ${r.sealsFound}` +
+      (r.codesRead.length ? `, codes ${r.codesRead.join('/')}` : ''),
+  );
+  console.log('by colour  ', colourBreakdown(r.pixelsByColor, r.blobsByColor));
+  if (r.dotRadiusPx !== null) {
+    console.log('dot radius ', `${r.dotRadiusPx.toFixed(2)} px (needs 3)`);
+  }
   console.log('result     ', full.result, '- verdict', full.verdict);
   if (full.areaRatio !== null) console.log('crop size  ', `${full.areaRatio.toFixed(1)}x the object`);
   console.groupEnd();

@@ -181,6 +181,8 @@ export function createMissionScreen(options: MissionScreenOptions): Screen {
           undersizedBlobs: report.diagnostics.undersizedBlobCount,
           sealsFound: report.diagnostics.seals.length,
           codesRead: report.diagnostics.seals.map((seal) => seal.code),
+          pixelsByColor: report.diagnostics.pixelsByColor,
+          blobsByColor: report.diagnostics.blobsByColor,
           dotRadiusPx: firstSeal ? firstSeal.dotRadiusPx : null,
           armDistancePx: firstSeal ? firstSeal.armDistancePx : null,
           measuredScale: firstSeal ? firstSeal.scale : null,

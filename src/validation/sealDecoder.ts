@@ -200,8 +200,11 @@ function classifyPixels(image: ImageDataLike): {
   labels: Int8Array;
   classifiedCount: number;
   saturatedCount: number;
+  /** Classified pixels per reserved hue, indexed like `RESERVED_HUES`. */
+  byColor: number[];
 } {
   const labels = new Int8Array(image.width * image.height).fill(-1);
+  const byColor = [0, 0, 0, 0];
   let classifiedCount = 0;
   let saturatedCount = 0;
   for (let p = 0; p < labels.length; p += 1) {
@@ -213,11 +216,12 @@ function classifyPixels(image: ImageDataLike): {
       if (angularDistance(h, RESERVED_HUES[colorIndex]) <= HUE_TOLERANCE_DEGREES) {
         labels[p] = colorIndex;
         classifiedCount += 1;
+        byColor[colorIndex] += 1;
         break;
       }
     }
   }
-  return { labels, classifiedCount, saturatedCount };
+  return { labels, classifiedCount, saturatedCount, byColor };
 }
 
 /**
@@ -403,6 +407,18 @@ export interface DecodeDiagnostics {
   saturatedPixelCount: number;
   /** Of those, how many landed inside a reserved hue band. */
   classifiedPixelCount: number;
+  /**
+   * The same two counts split by colour, indexed like `RESERVED_HUES`
+   * (magenta, cyan, lime, orange).
+   *
+   * This is the measurement that separates "the crop was blurry" from "one
+   * colour does not survive this machine". A seal always carries five dots, so
+   * a decode that finds three of them every single time, at three different
+   * zoom levels, is not losing them to resampling - it is losing a specific
+   * colour. Without the split that is invisible.
+   */
+  pixelsByColor: number[];
+  blobsByColor: number[];
 }
 
 export interface DecodeReport {
@@ -416,7 +432,7 @@ export function decodeSealWithDiagnostics(image: ImageDataLike): DecodeReport {
   const pixelScale = longestSide > MAX_ANALYSIS_SIDE ? MAX_ANALYSIS_SIDE / longestSide : 1;
   const analysed = pixelScale < 1 ? downscaleImage(image, pixelScale) : image;
 
-  const { labels, classifiedCount, saturatedCount } = classifyPixels(analysed);
+  const { labels, classifiedCount, saturatedCount, byColor } = classifyPixels(analysed);
   const { blobs, undersizedCount } = findBlobs(analysed, labels);
   const seals = findSeals(blobs, pixelScale);
 
@@ -429,6 +445,10 @@ export function decodeSealWithDiagnostics(image: ImageDataLike): DecodeReport {
     seals,
     saturatedPixelCount: saturatedCount,
     classifiedPixelCount: classifiedCount,
+    pixelsByColor: byColor,
+    blobsByColor: [0, 1, 2, 3].map(
+      (colorIndex) => blobs.filter((blob) => blob.colorIndex === colorIndex).length,
+    ),
   };
 
   return { result: chooseResult(seals, blobs, undersizedCount), diagnostics };
