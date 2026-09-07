@@ -209,9 +209,15 @@ function classifyPixels(image: ImageDataLike): {
   saturatedCount: number;
   /** Classified pixels per reserved hue, indexed like `RESERVED_HUES`. */
   byColor: number[];
+  /** Saturated but unmatched pixels, in 24 buckets of 15 degrees. */
+  offHue: number[];
 } {
   const labels = new Int8Array(image.width * image.height).fill(-1);
   const byColor = [0, 0, 0, 0];
+  // Saturated pixels that matched NO reserved hue, bucketed in 15 degree bins.
+  // When a colour goes missing this says where it went, which is the difference
+  // between "widen the window" and "that colour is unusable on this hardware".
+  const offHue = new Array(24).fill(0);
   let classifiedCount = 0;
   let saturatedCount = 0;
   for (let p = 0; p < labels.length; p += 1) {
@@ -219,16 +225,19 @@ function classifyPixels(image: ImageDataLike): {
     const { h, s, v } = rgbToHsv(image.data[i], image.data[i + 1], image.data[i + 2]);
     if (s <= MIN_SATURATION || v <= MIN_VALUE) continue;
     saturatedCount += 1;
+    let matched = false;
     for (let colorIndex = 0; colorIndex < SEAL_COLOR_COUNT; colorIndex += 1) {
       if (angularDistance(h, RESERVED_HUES[colorIndex]) <= HUE_TOLERANCE_DEGREES) {
         labels[p] = colorIndex;
         classifiedCount += 1;
         byColor[colorIndex] += 1;
+        matched = true;
         break;
       }
     }
+    if (!matched) offHue[Math.min(23, Math.floor(h / 15))] += 1;
   }
-  return { labels, classifiedCount, saturatedCount, byColor };
+  return { labels, classifiedCount, saturatedCount, byColor, offHue };
 }
 
 /**
@@ -426,6 +435,12 @@ export interface DecodeDiagnostics {
    */
   pixelsByColor: number[];
   blobsByColor: number[];
+  /**
+   * Saturated pixels that matched no reserved hue, in 24 buckets of 15 degrees.
+   * A colour that vanishes leaves its pixels here, and the bucket names the hue
+   * it actually arrived at on that display.
+   */
+  offHueHistogram: number[];
 }
 
 export interface DecodeReport {
@@ -439,7 +454,7 @@ export function decodeSealWithDiagnostics(image: ImageDataLike): DecodeReport {
   const pixelScale = longestSide > MAX_ANALYSIS_SIDE ? MAX_ANALYSIS_SIDE / longestSide : 1;
   const analysed = pixelScale < 1 ? downscaleImage(image, pixelScale) : image;
 
-  const { labels, classifiedCount, saturatedCount, byColor } = classifyPixels(analysed);
+  const { labels, classifiedCount, saturatedCount, byColor, offHue } = classifyPixels(analysed);
   const { blobs, undersizedCount } = findBlobs(analysed, labels);
   const seals = findSeals(blobs, pixelScale);
 
@@ -453,6 +468,7 @@ export function decodeSealWithDiagnostics(image: ImageDataLike): DecodeReport {
     saturatedPixelCount: saturatedCount,
     classifiedPixelCount: classifiedCount,
     pixelsByColor: byColor,
+    offHueHistogram: offHue,
     blobsByColor: [0, 1, 2, 3].map(
       (colorIndex) => blobs.filter((blob) => blob.colorIndex === colorIndex).length,
     ),

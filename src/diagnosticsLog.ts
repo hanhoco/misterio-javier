@@ -37,6 +37,8 @@ export interface DecodeLogEntry {
     /** Classified pixels and accepted dots per colour: magenta, cyan, lime, orange. */
     pixelsByColor: number[];
     blobsByColor: number[];
+    /** Saturated pixels that matched no reserved hue, 24 buckets of 15 degrees. */
+    offHueHistogram: number[];
     dotRadiusPx: number | null;
     armDistancePx: number | null;
     measuredScale: number | null;
@@ -78,7 +80,7 @@ const STYLE_BAD = 'background:#B3402F;color:#fff;padding:1px 6px;border-radius:3
 const STYLE_ERR = 'background:#7A1F1F;color:#fff;padding:1px 6px;border-radius:3px';
 
 /** Colour names in `RESERVED_HUES` order, for humans reading a console. */
-const COLOUR_NAMES = ['magenta', 'cyan', 'lime', 'orange'];
+const COLOUR_NAMES = ['magenta', 'cyan', 'green', 'orange'];
 
 /**
  * Pixels and dots per colour, on one line.
@@ -91,6 +93,24 @@ function colourBreakdown(pixels: number[] = [], blobs: number[] = []): string {
   return COLOUR_NAMES
     .map((name, i) => `${name} ${pixels[i] ?? 0}px/${blobs[i] ?? 0}dot`)
     .join('  ');
+}
+
+/**
+ * The biggest clumps of saturated pixels that matched no reserved hue.
+ *
+ * When a seal colour goes missing this is where its pixels ended up, and the
+ * hue named here is the one that colour actually arrived at on that display.
+ * That is the difference between "widen the window" and "this colour cannot be
+ * used on this hardware", which no other number distinguishes.
+ */
+function offHuePeaks(histogram: number[] = []): string {
+  const peaks = histogram
+    .map((count, bucket) => ({ count, hue: bucket * 15 + 7 }))
+    .filter((peak) => peak.count > 20)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+  if (peaks.length === 0) return '';
+  return peaks.map((peak) => `${peak.count}px near ${peak.hue} deg`).join('  ');
 }
 
 /**
@@ -158,6 +178,8 @@ export function logDecode(entry: Omit<DecodeLogEntry, 'kind' | 'at' | 'build'>):
       (r.codesRead.length ? `, codes ${r.codesRead.join('/')}` : ''),
   );
   console.log('by colour  ', colourBreakdown(r.pixelsByColor, r.blobsByColor));
+  const stray = offHuePeaks(r.offHueHistogram);
+  if (stray) console.log('off hue    ', stray);
   if (r.dotRadiusPx !== null) {
     console.log('dot radius ', `${r.dotRadiusPx.toFixed(2)} px (needs 3)`);
   }

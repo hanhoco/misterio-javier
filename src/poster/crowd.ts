@@ -104,7 +104,7 @@ const HAIR_COLORS = [
 ];
 
 const CLOTH_COLORS = [
-  sceneColor(124, 0.3, 0.44),
+  sceneColor(148, 0.3, 0.44),
   sceneColor(138, 0.28, 0.56),
   sceneColor(152, 0.26, 0.38),
   sceneColor(214, 0.3, 0.48),

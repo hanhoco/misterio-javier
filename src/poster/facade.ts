@@ -79,7 +79,7 @@ function floorTop(index: number): number {
 }
 
 /** Muted, desaturated facade tones. Every hue sits outside the reserved bands. */
-const WALL_HUES = [50, 56, 128, 215, 268, 352] as const;
+const WALL_HUES = [50, 56, 155, 215, 268, 352] as const;
 const SHUTTER_HUES = [138, 208, 274, 352, 62] as const;
 const DOOR_HUES = [352, 268, 138, 210, 55] as const;
 
@@ -212,7 +212,7 @@ export function drawFacadeBack(ctx: CanvasRenderingContext2D, facade: Facade, se
   // Paving speckle.
   for (let i = 0; i < 700; i += 1) {
     ctx.fillStyle = sceneColor(
-      randomPick(random, [48, 56, 215, 128]),
+      randomPick(random, [48, 56, 215, 155]),
       0.14,
       randomBetween(random, 0.56, 0.74),
       0.4,

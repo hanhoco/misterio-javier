@@ -12,13 +12,28 @@
  *
  * Index order is the encoding order: magenta=0, cyan=1, lime=2, orange=3.
  */
-export const SEAL_COLORS = ['#FF00E5', '#00E5FF', '#7CFF00', '#FF7A00'] as const;
+export const SEAL_COLORS = ['#FF00E5', '#00E5FF', '#00E000', '#FF7A00'] as const;
 
 /** Human readable names, used by the seal reference sheet. */
-export const SEAL_COLOR_NAMES = ['magenta', 'cyan', 'lime', 'orange'] as const;
+export const SEAL_COLOR_NAMES = ['magenta', 'cyan', 'green', 'orange'] as const;
 
 /** Hue (degrees, 0-360) of each reserved colour, in palette-index order. */
-export const RESERVED_HUES = [306, 186, 91, 29] as const;
+/**
+ * Hue (degrees, 0-360) of each reserved colour, in palette-index order.
+ *
+ * The third one was `#7CFF00` at 91 degrees and it had to go. In a classroom it
+ * produced ZERO classified pixels on one machine - not few, none - while the
+ * other three colours came through untouched, at three different zoom levels.
+ * That colour is a near-maximal yellow-green sitting on the edge of the sRGB
+ * gamut, which is exactly the region a display colour profile mangles worst.
+ *
+ * `#00E000` is a plain green instead: red and blue are both zero, so its
+ * saturation is 1.0 by construction and survives any conversion that does not
+ * lift those channels. It also spaces the palette better - the closest pair
+ * goes from 62 degrees apart (orange to lime) to 66 (green to cyan), which
+ * raises the tolerance ceiling from 31 to 33.
+ */
+export const RESERVED_HUES = [306, 186, 120, 29] as const;
 
 /** How many distinct colours a single dot can take. */
 export const SEAL_COLOR_COUNT = SEAL_COLORS.length;
