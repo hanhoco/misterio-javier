@@ -25,7 +25,7 @@
  * saturation, so they are ingredients that only ever help.
  */
 
-import { isReservedHue } from './seal';
+import { isTooCloseToReservedHue } from './seal';
 
 /**
  * Hard ceiling on the HSL saturation of anything that is not a seal. Kept as
@@ -95,7 +95,7 @@ export function sceneColor(
   alpha = 1,
 ): string {
   const safeHue = ((hue % 360) + 360) % 360;
-  if (isReservedHue(safeHue)) {
+  if (isTooCloseToReservedHue(safeHue)) {
     throw new Error(
       `Scene hue ${safeHue} falls inside a reserved seal band; pick another hue.`,
     );

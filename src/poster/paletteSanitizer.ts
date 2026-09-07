@@ -60,7 +60,7 @@ export const SANITIZED_SATURATION = MAX_SCENE_VALUE_SATURATION;
  * it one rounding error away from being classified again. Eight degrees is
  * comfortably clear and still a shift small enough to read as the same colour.
  */
-export const HUE_SAFETY_MARGIN = 8;
+export const HUE_SAFETY_MARGIN = 2;
 
 export interface SanitizeStats {
   /** Pixels examined. */

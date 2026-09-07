@@ -109,11 +109,37 @@ export const SEAL_DOT_OFFSETS: ReadonlyArray<{ dx: number; dy: number }> = [
 ];
 
 /**
- * Hue windows the poster artwork must stay out of. The decoder accepts a hue
- * within +/-15 degrees of a reserved hue, so anything inside these bands could
- * be mistaken for a seal dot.
+ * How far a hue may drift from a reserved one and still be read as seal ink.
+ *
+ * Widened from 15 to 28 because of a classroom failure that survived three
+ * wrong diagnoses. On one machine the decoder found three of a seal's five dots
+ * at 0.59x, again at 0.83x and again at 0.92x - always three, never four. A
+ * count that does not move with zoom is not blur; it is a colour arriving
+ * shifted far enough to fall outside the window, consistently, on that display.
+ *
+ * The ceiling is 31 degrees: the closest two reserved hues are orange at 29 and
+ * lime at 91, and a window wider than half their 62 degree gap would let one
+ * dot answer to two colours. 28 takes nearly all of that headroom.
+ *
+ * Measured cost on the shipped illustration: the sanitiser touches 1.45% of it
+ * instead of 1.33%. Effectively free, because the artwork is muted and almost
+ * nothing in it clears the decoder's saturation floor to begin with.
  */
-export const RESERVED_HUE_TOLERANCE = 15;
+export const RESERVED_HUE_TOLERANCE = 28;
+
+/**
+ * Hue clearance demanded of the PROCEDURAL poster's own palette at design time.
+ *
+ * Deliberately narrower than `RESERVED_HUE_TOLERANCE`, and it is not a safety
+ * mechanism. Scene colour is capped at a saturation below the decoder's floor,
+ * so a scene pixel cannot be classified as seal ink whatever its hue - that cap
+ * is the real guarantee, and this is a second pair of eyes on the palette.
+ *
+ * Holding it at 15 keeps the procedural poster's existing hues legal. Raising
+ * it to 28 would outlaw the 46-60 degree band its paths and foliage live in,
+ * for no gain the saturation cap does not already provide.
+ */
+export const SCENE_HUE_CLEARANCE = 15;
 
 export const RESERVED_HUE_BANDS = RESERVED_HUES.map((hue) => ({
   hue,
@@ -130,6 +156,11 @@ export function hueDistance(a: number, b: number): number {
 /** True when a hue falls inside any reserved band. */
 export function isReservedHue(hue: number): boolean {
   return RESERVED_HUES.some((reserved) => hueDistance(hue, reserved) <= RESERVED_HUE_TOLERANCE);
+}
+
+/** True when a scene hue sits too close to a reserved one for the design guard. */
+export function isTooCloseToReservedHue(hue: number): boolean {
+  return RESERVED_HUES.some((reserved) => hueDistance(hue, reserved) <= SCENE_HUE_CLEARANCE);
 }
 
 /**

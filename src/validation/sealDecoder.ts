@@ -9,6 +9,7 @@
 
 import {
   RESERVED_HUES,
+  RESERVED_HUE_TOLERANCE,
   SEAL_ARM_DISTANCE,
   SEAL_COLOR_COUNT,
   SEAL_DOT_RADIUS,
@@ -66,8 +67,14 @@ const MAX_ANALYSIS_SIDE = 1600;
 const MIN_SATURATION = 0.55;
 const MIN_VALUE = 0.45;
 
-/** Hue window around each reserved hue, in degrees. */
-const HUE_TOLERANCE_DEGREES = 15;
+/**
+ * Hue window around each reserved hue, in degrees.
+ *
+ * Imported, not restated. It was a second literal `15` sitting beside the one
+ * in `seal.ts`, and two constants that must agree but do not have to are how
+ * the sanitiser and the decoder quietly stop agreeing.
+ */
+const HUE_TOLERANCE_DEGREES = RESERVED_HUE_TOLERANCE;
 
 /** Blobs thinner than this are noise (JPEG ringing, subpixel text). */
 const MIN_BLOB_RADIUS_PX = 2;
