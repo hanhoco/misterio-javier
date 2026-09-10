@@ -1735,3 +1735,34 @@ body { overflow: hidden; }
   white-space: nowrap;
   cursor: help;
 }
+
+/*
+ * A panel that belongs to a later step.
+ *
+ * Steps in one column and a paste box in another are two things competing for
+ * a seven year old's attention, and a teacher watching a class said it plainly:
+ * it is not clear what to click first, then, and last. So only the thing to do
+ * right now looks alive. This is not decoration, it is the reading order.
+ */
+.is-waiting {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+  pointer-events: none;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-waiting {
+    transition: none;
+  }
+}
+
+/* The escape button is a quiet way out, never the obvious path forward. */
+.steps__action {
+  margin-top: 0.5rem;
+  opacity: 0.7;
+  font-size: 0.78rem;
+}
+.steps__action:hover {
+  opacity: 1;
+}

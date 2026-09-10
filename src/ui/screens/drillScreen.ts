@@ -104,9 +104,15 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
     context.save(recordAttempt(context.getProgress(), mission.id, { success: false }));
   };
 
+  /** Run after every step change, so panels can follow the current step. */
+  const stepWatchers: Array<() => void> = [];
+
   const steps = createStepList({
     steps: mission.steps,
-    onStepDone: () => context.sound.play('click'),
+    onStepDone: () => {
+      context.sound.play('click');
+      for (const watcher of stepWatchers) watcher();
+    },
     onFinished: complete,
   });
   sideColumn.appendChild(steps.root);
@@ -122,6 +128,37 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
     // Never prevented: the browser really should zoom, that is the lesson.
     window.addEventListener('keydown', onKeyDown);
     cleanups.push(() => window.removeEventListener('keydown', onKeyDown));
+
+    /*
+     * The keystroke is the secondary cue; the ZOOM ITSELF is the primary one.
+     *
+     * `Ctrl` `+` is not one key combination, it is several: the plus on the
+     * number row needs Shift on a Latin American layout, the numpad has its
+     * own key, and `Ctrl` `=` zooms too. Matching all of that by key code is a
+     * guessing game, and every miss pushes a child toward the skip button.
+     *
+     * Browser zoom changes `devicePixelRatio`, so watching that answers the
+     * only question the drill actually asks - did the screen get bigger? - and
+     * it answers it whatever key was pressed, on any keyboard, even from the
+     * browser's own menu. A child who found their own way there still learned
+     * the lesson.
+     *
+     * Polled rather than driven by `matchMedia`: the query's `matches` flips
+     * reliably, the `change` event does not always arrive.
+     */
+    const baselineRatio = window.devicePixelRatio || 1;
+    let sawZoomIn = false;
+    const ratioPoll = setInterval(() => {
+      if (completed) return;
+      const ratio = window.devicePixelRatio || 1;
+      if (!sawZoomIn && ratio > baselineRatio * 1.05) {
+        sawZoomIn = true;
+        steps.fire('key-zoom-in');
+      } else if (sawZoomIn && Math.abs(ratio - baselineRatio) < 0.01) {
+        steps.fire('key-zoom-reset');
+      }
+    }, 300);
+    cleanups.push(() => clearInterval(ratioPoll));
   }
 
   if (mission.drill === 'crop') {
@@ -134,6 +171,21 @@ export function createDrillScreen(options: DrillScreenOptions): Screen {
     body.appendChild(buildPosterPanel(practice));
 
     const evidence = buildEvidence(practice, 'crop');
+    /*
+     * Dimmed until the child reaches the step that uses it.
+     *
+     * Steps on the left and a paste box on the right are two columns competing
+     * for attention, and a teacher watching a class put it plainly: it is not
+     * clear what to click first, then, and last. Only the thing to do right
+     * now should look alive.
+     */
+    const pasteStepIndex = mission.steps.findIndex((step) => step.trigger === 'paste');
+    const syncEvidenceState = () => {
+      const reached = pasteStepIndex < 0 || steps.currentIndex() >= pasteStepIndex;
+      evidence.classList.toggle('is-waiting', !reached);
+    };
+    syncEvidenceState();
+    stepWatchers.push(syncEvidenceState);
     sideColumn.appendChild(evidence);
 
     const onBlur = () => {

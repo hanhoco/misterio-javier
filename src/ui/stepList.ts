@@ -7,12 +7,26 @@
  * six instructions on screen at once is exactly the wall of text the brief says
  * to avoid, and a child who reads ahead stops following along.
  *
- * Every step that the browser cannot observe reliably also carries a button, so
- * a missed cue costs a tap rather than the whole tutorial.
+ * Every step that the browser cannot observe reliably also carries an escape
+ * button, so a missed cue costs a tap rather than the whole tutorial. That
+ * button is HIDDEN until the step has been on screen for a while, and it is
+ * worded as help rather than as failure. A visible "it did not work" sitting
+ * under the very first instruction is not an escape hatch, it is the path of
+ * least resistance: a child clicks it, learns nothing, and the drill has
+ * taught them to skip. Earning the step has to be the easy thing to do; giving
+ * up has to be available, quiet, and late.
  */
 
 import type { GuidedStep, StepTrigger } from '../game/missions';
 import { button, element, keyHint } from './dom';
+
+/**
+ * How long a step stays on screen before its escape button appears.
+ *
+ * Long enough that a child who is actually trying gets there first, short
+ * enough that one who is stuck is not abandoned.
+ */
+export const ESCAPE_BUTTON_DELAY_MS = 12_000;
 
 export interface StepListOptions {
   steps: readonly GuidedStep[];
@@ -51,24 +65,41 @@ export function createStepList(options: StepListOptions): StepList {
 
     item.append(badge, body);
 
+    let action: HTMLButtonElement | null = null;
     if (step.buttonLabel) {
-      const action = button(step.buttonLabel, 'button button--ghost steps__action');
+      action = button(step.buttonLabel, 'button button--ghost button--small steps__action');
+      action.hidden = true;
       action.addEventListener('click', () => advance(position));
       item.appendChild(action);
     }
 
-    return item;
+    return { item, action };
   });
 
-  for (const item of items) root.appendChild(item);
+  for (const { item } of items) root.appendChild(item);
+
+  /** Timer that reveals the current step's escape button, if it has one. */
+  let escapeTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function armEscapeButton(): void {
+    if (escapeTimer !== null) clearTimeout(escapeTimer);
+    escapeTimer = null;
+    const current = items[index];
+    if (finished || !current?.action) return;
+    const escapeButton = current.action;
+    escapeTimer = setTimeout(() => {
+      if (!finished && items[index]?.action === escapeButton) escapeButton.hidden = false;
+    }, ESCAPE_BUTTON_DELAY_MS);
+  }
 
   function paint(): void {
-    items.forEach((item, position) => {
+    items.forEach(({ item }, position) => {
       item.classList.toggle('is-done', position < index);
       item.classList.toggle('is-current', position === index && !finished);
       // Not yet reached: kept out of the document flow entirely.
       item.hidden = position > index;
     });
+    armEscapeButton();
   }
 
   function advance(position: number): void {
